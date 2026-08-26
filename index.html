@@ -319,6 +319,8 @@
   .pinyin-input.correct{ border-color:var(--teal); background:var(--teal-soft); }
   .pinyin-input.incorrect{ border-color:var(--brick); background:var(--brick-soft); }
   .pinyin-hint{ font-size:12px; color:var(--grey); margin:0 0 16px; }
+  .toefl-tip-box{ background:var(--paper-raised); border:1.5px dashed var(--line); border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; color:var(--ink-soft); margin-bottom:14px; }
+  .toefl-tip-box b{ color:var(--ink); }
 
   /* ---------- Result view ---------- */
   .result-score{
@@ -1333,6 +1335,7 @@
     <div class="topbar-actions">
       <button class="topbar-btn" id="topbarLibraryBtn">Library</button>
       <button class="topbar-btn" id="topbarPinyinBtn">Pinyin</button>
+      <button class="topbar-btn" id="topbarToeflClueBtn">TOEFL</button>
       <button class="topbar-btn" id="topbarRiwayatBtn">Riwayat</button>
       <button class="topbar-btn" id="topbarPointsBtn">Point Reward</button>
       <button class="topbar-btn" id="topbarAdminBtn" style="display:none;">Kelola User</button>
@@ -1508,6 +1511,7 @@
 
     <div class="card">
       <div class="pinyin-progress" id="pinyinProgress">Kata 1 / 12</div>
+      <div class="pinyin-progress" id="pinyinSessionBadge" style="margin-top:-8px; font-size:11px; color:var(--grey);"></div>
       <div class="pinyin-meaning" id="pinyinMeaning">arti kata</div>
       <button class="pinyin-audio-btn" id="pinyinAudioBtn" title="Dengarkan pelafalan">&#128266;</button>
 
@@ -1526,6 +1530,44 @@
       <div class="next-wrap" id="pinyinNextWrap">
         <button class="btn btn-primary" id="pinyinNextBtn">Kata Berikutnya &rarr;</button>
       </div>
+    </div>
+  </div>
+
+  <!-- ===================== TOEFL CLUE VIEW (belajar terpandu) ===================== -->
+  <div id="view-toefl-clue" class="hidden">
+    <button class="btn-ghost" id="toeflClueBackBtn" style="width:auto; padding:8px 14px; margin-bottom:14px; border-radius:8px; font-size:13px; font-weight:600;">&larr; All Subjects</button>
+    <h1 style="font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px;">Clue Belajar TOEFL</h1>
+    <p class="subtitle">Baca tips-nya dulu, lalu coba jawab contohnya sendiri — biar makin siap saat TOEFL muncul di Spin the Wheel.</p>
+
+    <div class="ruler">
+      <div class="ruler-fill" id="toeflClueRulerFill"></div>
+      <div class="ruler-ticks" id="toeflClueRulerTicks"></div>
+      <div class="ruler-label">
+        <span id="toeflClueProgressText">Soal 1 / 50</span>
+        <span class="marker" id="toeflClueScoreText">Skor 0</span>
+      </div>
+    </div>
+
+    <div class="card" id="toeflClueMainCard">
+      <div class="toefl-tip-box" id="toeflClueTipBox">Tips</div>
+      <div class="topic-tag" id="toeflClueTopicTag">TOPIC</div>
+      <p class="question-text" id="toeflClueQuestionText">Question text</p>
+      <div class="choices" id="toeflClueChoices"></div>
+
+      <div class="feedback" id="toeflClueFeedback">
+        <div class="feedback-head" id="toeflClueFeedbackHead"></div>
+        <div id="toeflClueFeedbackBody"></div>
+      </div>
+
+      <div class="next-wrap" id="toeflClueNextWrap">
+        <button class="btn btn-primary" id="toeflClueNextBtn">Soal Berikutnya &rarr;</button>
+      </div>
+    </div>
+
+    <div class="card" id="toeflClueDoneCard" style="display:none; text-align:center;">
+      <div class="card-title" style="font-size:16px;">🎉 Selesai!</div>
+      <p class="card-sub" id="toeflClueDoneText">Kamu sudah menyelesaikan clue TOEFL hari ini.</p>
+      <button class="btn btn-primary" id="toeflClueDoneBackBtn">Kembali ke Semua Mapel</button>
     </div>
   </div>
 
@@ -3757,6 +3799,42 @@
   TOEFL_GENERATORS.forEach(function(g){ for (var i=0;i<g.weight;i++) TOEFL_WEIGHTED_POOL.push(g.fn); });
 
   /* =========================================================
+     1B-2. TOEFL CLUE POOL — versi "belajar terpandu" dari soal
+     TOEFL di atas: tiap soal dibungkus dengan tips strategi
+     berbahasa Indonesia di atasnya, supaya jadi bahan belajar
+     mandiri sebelum TOEFL muncul di Spin the Wheel (bukan sekadar
+     jawaban instan, tapi penjelasan cara mikirnya).
+  ========================================================= */
+  var TOEFL_CLUE_TIPS = {
+    vocabulary: [
+      'Cari kata yang artinya paling mirip (sinonim) atau paling berlawanan (antonim) — bukan sekadar kata yang paling familiar.',
+      'Kalau ragu, coba bayangkan tiap pilihan menggantikan kata yang dimaksud, lalu rasakan mana yang maknanya paling pas.',
+      'Imbuhan seperti un-, re-, -ful, -less kadang jadi petunjuk arti kata yang belum kamu kenal.'
+    ],
+    grammar: [
+      'Perhatikan subjek kalimatnya — tunggal atau jamak? Itu menentukan bentuk kata kerja yang tepat.',
+      'Cek keterangan waktu di kalimat (yesterday, now, since 2020, dll) — itu petunjuk tense mana yang seharusnya dipakai.',
+      'Baca seluruh kalimat dulu sebelum memilih jawaban, jangan cuma lihat bagian yang kosong.'
+    ],
+    reading: [
+      'Baca pertanyaannya dulu sebelum membaca teksnya, supaya kamu tahu informasi apa yang harus dicari.',
+      'Jawaban yang benar biasanya ada buktinya langsung di dalam teks — bukan tebakan dari pengetahuan umum.',
+      'Kalau soal menanyakan arti sebuah kata dalam teks, lihat kalimat di sekitarnya, bukan arti kamus umum kata itu.'
+    ]
+  };
+  function pickToeflClueTip(topic){
+    var bank = TOEFL_CLUE_TIPS[topic] || TOEFL_CLUE_TIPS.vocabulary;
+    return pick(bank);
+  }
+  function genToeflClueItem(){
+    var genFn = pick(TOEFL_WEIGHTED_POOL);
+    var q = genFn();
+    q.tip = pickToeflClueTip(q.topic);
+    return q;
+  }
+  var TOEFL_CLUE_WEIGHTED_POOL = [genToeflClueItem];
+
+  /* =========================================================
      1C. MATEMATIKA GENERATORS — Kurikulum Merdeka, Kelas 5 SD (Fase C)
      Versi ringan: bilangan cacah skala ratusan-ribuan, operasi aritmetika,
      pecahan & desimal, aljabar satu langkah, KPK & FPB, pengukuran, dan
@@ -5753,8 +5831,302 @@
     return out;
   }
 
+  /* =========================================================
+     1G. HITUNG CEPAT — latihan hitungan murni (bukan soal cerita)
+     Perkalian, Pembagian, Pecahan, Aljabar dasar. Semua soal
+     berupa notasi angka langsung ("24 × 7 = ...?"), tanpa nama
+     orang / konteks belanja / cerita apa pun. Generator memakai
+     rentang angka acak yang lebar sehingga bisa menghasilkan
+     ribuan kombinasi soal berbeda, bukan daftar soal statis.
+  ========================================================= */
+  function simplifyFrac(num, den){
+    if (den < 0){ num = -num; den = -den; }
+    var g = gcd(num, den) || 1;
+    return [num/g, den/g];
+  }
+  function fracStr(num, den){
+    var s = simplifyFrac(num, den);
+    return s[0] + '/' + s[1];
+  }
+
+  function genHitungPerkalianDasar(){
+    var a = ri(2,10), b = ri(2,10);
+    var correct = a*b;
+    var distractors = [correct+a, correct-a, correct+b, correct-b, a*(b+1), a*(b-1)].filter(function(v){return v!==correct && v>0;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'perkalian', topicLabel:'Perkalian',
+      prompt: a + ' × ' + b + ' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a + ' × ' + b + ' = ' + fmtID(correct) + '.'
+    };
+  }
+  function genHitungPerkalian2Digit(){
+    var a = ri(12,99), b = ri(2,12);
+    var correct = a*b;
+    var distractors = [correct+b, correct-b, a*(b+1), a*(b-1), correct+10, correct-10].filter(function(v){return v!==correct && v>0;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'perkalian', topicLabel:'Perkalian',
+      prompt: a + ' × ' + b + ' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a + ' × ' + b + ' = ' + fmtID(correct) + '.'
+    };
+  }
+  function genHitungPerkalian3Digit(){
+    var a = ri(100,400), b = ri(2,9);
+    var correct = a*b;
+    var distractors = [correct+b, correct-b, correct+100, correct-100, a*(b+1)].filter(function(v){return v!==correct && v>0;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'perkalian', topicLabel:'Perkalian',
+      prompt: a + ' × ' + b + ' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a + ' × ' + b + ' = ' + fmtID(correct) + '.'
+    };
+  }
+  function genHitungPerkalianDuaAngkaDuaAngka(){
+    var a = ri(11,40), b = ri(11,40);
+    var correct = a*b;
+    var distractors = [correct+a, correct-a, correct+b, correct-b, correct+10].filter(function(v){return v!==correct && v>0;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'perkalian', topicLabel:'Perkalian',
+      prompt: a + ' × ' + b + ' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a + ' × ' + b + ' = ' + fmtID(correct) + '.'
+    };
+  }
+  function genHitungPembagianDasar(){
+    var b = ri(2,10), q = ri(2,10);
+    var a = b*q;
+    var correct = q;
+    var distractors = [q+1,q-1,q+2,q-2].filter(function(v){return v!==correct && v>0;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'pembagian', topicLabel:'Pembagian',
+      prompt: a + ' ÷ ' + b + ' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a + ' ÷ ' + b + ' = ' + fmtID(correct) + ', karena ' + b + ' × ' + fmtID(correct) + ' = ' + fmtID(a) + '.'
+    };
+  }
+  function genHitungPembagianExact(){
+    var b = ri(2,12), q = ri(5,50);
+    var a = b*q;
+    var correct = q;
+    var distractors = [q+1, q-1, q+2, q-2, Math.round(a/(b+1))].filter(function(v){return v!==correct && v>0;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'pembagian', topicLabel:'Pembagian',
+      prompt: a + ' ÷ ' + b + ' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a + ' ÷ ' + b + ' = ' + fmtID(correct) + ', karena ' + b + ' × ' + fmtID(correct) + ' = ' + fmtID(a) + '.'
+    };
+  }
+  function genHitungPembagianSisa(){
+    var b = ri(3,12), q = ri(4,30);
+    var sisa = ri(1,b-1);
+    var a = b*q + sisa;
+    var correct = q + ' sisa ' + sisa;
+    var altSisa = sisa+1 < b ? sisa+1 : sisa-1;
+    var wrongs = [(q+1)+' sisa '+sisa, (q>1?q-1:q+2)+' sisa '+sisa, q+' sisa '+altSisa, (q+2)+' sisa '+altSisa];
+    var seen = {}; seen[correct]=true;
+    var options=[correct];
+    wrongs.forEach(function(w){ if(!seen[w] && options.length<4){ seen[w]=true; options.push(w); } });
+    options = shuffle(options);
+    return {
+      topic:'pembagian', topicLabel:'Pembagian',
+      prompt: a + ' ÷ ' + b + ' = ...? (tulis dalam bentuk "hasil bagi sisa sisanya")',
+      correctText: correct, options: options,
+      explanation: b + ' × ' + q + ' = ' + fmtID(b*q) + ', dan ' + a + ' − ' + fmtID(b*q) + ' = ' + sisa + '. Jadi ' + a + ' ÷ ' + b + ' = ' + q + ' sisa ' + sisa + '.'
+    };
+  }
+  function genHitungPecahanTambah(){
+    var denoms = [2,3,4,5,6,8,10,12];
+    var d1 = pick(denoms), d2 = pick(denoms.filter(function(v){return v!==d1;}));
+    var n1 = ri(1,d1-1), n2 = ri(1,d2-1);
+    var num = n1*d2 + n2*d1, den = d1*d2;
+    var correct = fracStr(num, den);
+    var distractors = [fracStr(n1+n2, d1+d2), fracStr(num+1, den), fracStr(num, den+1), fracStr(n1*d1+n2*d2, den)];
+    var ch = buildChoices(correct, distractors, function(v){return v;});
+    return {
+      topic:'pecahan', topicLabel:'Pecahan',
+      prompt: n1+'/'+d1+' + '+n2+'/'+d2+' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'Samakan penyebut dulu: '+n1+'/'+d1+' = '+(n1*d2)+'/'+den+' dan '+n2+'/'+d2+' = '+(n2*d1)+'/'+den+'. Jumlahkan pembilangnya: ('+(n1*d2)+'+'+(n2*d1)+')/'+den+' = '+num+'/'+den+' = '+correct+' (sudah disederhanakan).'
+    };
+  }
+  function genHitungPecahanKurang(){
+    var denoms = [2,3,4,5,6,8,10,12];
+    var d1 = pick(denoms), d2 = pick(denoms.filter(function(v){return v!==d1;}));
+    var n1 = ri(1,d1-1), n2 = ri(1,d2-1);
+    if (n1*d2 < n2*d1){ var tn=n1,td=d1; n1=n2; d1=d2; n2=tn; d2=td; }
+    if (n1*d2 === n2*d1){ n1 = n1 < d1-1 ? n1+1 : n1-1; }
+    var num = n1*d2 - n2*d1, den = d1*d2;
+    var correct = fracStr(num, den);
+    var distractors = [fracStr(Math.abs(n1-n2), Math.abs(d1-d2)||1), fracStr(num+1, den), fracStr(num, den+1), fracStr(num+2, den)];
+    var ch = buildChoices(correct, distractors, function(v){return v;});
+    return {
+      topic:'pecahan', topicLabel:'Pecahan',
+      prompt: n1+'/'+d1+' − '+n2+'/'+d2+' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'Samakan penyebut dulu: '+n1+'/'+d1+' = '+(n1*d2)+'/'+den+' dan '+n2+'/'+d2+' = '+(n2*d1)+'/'+den+'. Kurangkan pembilangnya: ('+(n1*d2)+'−'+(n2*d1)+')/'+den+' = '+num+'/'+den+' = '+correct+' (sudah disederhanakan).'
+    };
+  }
+  function genHitungPecahanKali(){
+    var n1=ri(1,9), d1=ri(2,10), n2=ri(1,9), d2=ri(2,10);
+    var num=n1*n2, den=d1*d2;
+    var correct = fracStr(num,den);
+    var distractors = [fracStr(n1+n2,d1+d2), fracStr(num,den+1), fracStr(num+1,den), fracStr(n1*d2,(n2*d1)||1)];
+    var ch = buildChoices(correct, distractors, function(v){return v;});
+    return {
+      topic:'pecahan', topicLabel:'Pecahan',
+      prompt: n1+'/'+d1+' × '+n2+'/'+d2+' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'Kalikan pembilang dengan pembilang, dan penyebut dengan penyebut: ('+n1+'×'+n2+')/('+d1+'×'+d2+') = '+num+'/'+den+' = '+correct+'.'
+    };
+  }
+  function genHitungPecahanBagi(){
+    var n1=ri(1,9), d1=ri(2,10), n2=ri(1,9), d2=ri(2,10);
+    var num = n1*d2, den = d1*n2;
+    var correct = fracStr(num,den);
+    var distractors = [fracStr(n1*n2,d1*d2), fracStr(num+1,den), fracStr(num,den+1), fracStr(num+2,den)];
+    var ch = buildChoices(correct, distractors, function(v){return v;});
+    return {
+      topic:'pecahan', topicLabel:'Pecahan',
+      prompt: n1+'/'+d1+' ÷ '+n2+'/'+d2+' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'Membagi pecahan sama dengan mengalikan dengan kebalikan (invers) pecahan pembagi: '+n1+'/'+d1+' × '+d2+'/'+n2+' = ('+n1+'×'+d2+')/('+d1+'×'+n2+') = '+num+'/'+den+' = '+correct+'.'
+    };
+  }
+  function genHitungPecahanSederhana(){
+    var g = ri(2,9);
+    var n = ri(1,8), d = ri(2,9);
+    var guard = 0;
+    while (gcd(n,d) !== 1 && guard < 20){ n = ri(1,8); d = ri(2,9); guard++; }
+    var num = n*g, den = d*g;
+    var correct = n+'/'+d;
+    var distractors = [(n+1)+'/'+d, n+'/'+(d+1), (n*2)+'/'+(d*2), n+'/'+(d>2?d-1:d+2)];
+    var ch = buildChoices(correct, distractors, function(v){return v;});
+    return {
+      topic:'pecahan', topicLabel:'Pecahan',
+      prompt: 'Sederhanakan pecahan '+num+'/'+den+' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'FPB dari '+num+' dan '+den+' adalah '+g+', maka '+num+'/'+den+' = ('+num+'÷'+g+')/('+den+'÷'+g+') = '+correct+'.'
+    };
+  }
+  function genHitungAljabarTambah(){
+    var x = ri(2,50), b = ri(2,40), c = x+b;
+    var correct = x;
+    var distractors = [x+1, x-1, c, b].filter(function(v){return v!==correct;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: 'x + '+b+' = '+c+', maka x = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'x = '+c+' − '+b+' = '+fmtID(correct)+'.'
+    };
+  }
+  function genHitungAljabarKurang(){
+    var x = ri(5,60), b = ri(2,40), c = x-b;
+    var correct = x;
+    var distractors = [x+1, x-1, c, x+b*2].filter(function(v){return v!==correct;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: 'x − '+b+' = '+c+', maka x = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'x = '+c+' + '+b+' = '+fmtID(correct)+'.'
+    };
+  }
+  function genHitungAljabarKali(){
+    var a = ri(2,12), x = ri(2,20), c = a*x;
+    var correct = x;
+    var distractors = [x+1, x-1, a, c].filter(function(v){return v!==correct;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: a+'x = '+c+', maka x = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'x = '+c+' ÷ '+a+' = '+fmtID(correct)+'.'
+    };
+  }
+  function genHitungAljabarDuaLangkah(){
+    var a = ri(2,9), x = ri(2,20), b = ri(2,30), c = a*x + b;
+    var correct = x;
+    var distractors = [x+1, x-1, c, a+b].filter(function(v){return v!==correct;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: a+'x + '+b+' = '+c+', maka x = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'x = ('+c+' − '+b+') ÷ '+a+' = '+fmtID(a*x)+' ÷ '+a+' = '+fmtID(correct)+'.'
+    };
+  }
+  function genHitungAljabarDuaLangkahKurang(){
+    var a = ri(2,9), x = ri(2,20), b = ri(2,30), c = a*x - b;
+    var correct = x;
+    var distractors = [x+1, x-1, c, Math.abs(a-b)].filter(function(v){return v!==correct;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: a+'x − '+b+' = '+c+', maka x = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'x = ('+c+' + '+b+') ÷ '+a+' = '+fmtID(a*x)+' ÷ '+a+' = '+fmtID(correct)+'.'
+    };
+  }
+  function genHitungAljabarEvaluasi(){
+    var a = ri(2,9), b = ri(1,20), x = ri(2,15);
+    var correct = a*x + b;
+    var distractors = [correct+a, correct-a, correct+b, a*x].filter(function(v){return v!==correct;});
+    var ch = buildChoices(correct, distractors, fmtID);
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: 'Jika x = '+x+', maka nilai dari '+a+'x + '+b+' = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: a+'('+x+') + '+b+' = '+fmtID(a*x)+' + '+b+' = '+fmtID(correct)+'.'
+    };
+  }
+  function genHitungAljabarSederhana(){
+    var a = ri(2,9), b = ri(2,9);
+    var correct = (a+b)+'x';
+    var distractors = [(a*b)+'x', (a+b+1)+'x', (a+b-1)+'x', Math.abs(a-b)+'x', (a+b)+'x²'];
+    var ch = buildChoices(correct, distractors, function(v){return v;});
+    return {
+      topic:'aljabar', topicLabel:'Aljabar',
+      prompt: a+'x + '+b+'x = ...?',
+      correctText: ch.correctText, options: ch.options,
+      explanation: 'Suku sejenis (sama-sama mengandung x) dijumlahkan koefisiennya langsung: ('+a+'+'+b+')x = '+correct+'.'
+    };
+  }
+
+  var HITUNG_GENERATORS = [
+    {fn: genHitungPerkalianDasar, weight: 3},
+    {fn: genHitungPerkalian2Digit, weight: 3},
+    {fn: genHitungPerkalian3Digit, weight: 2},
+    {fn: genHitungPerkalianDuaAngkaDuaAngka, weight: 2},
+    {fn: genHitungPembagianDasar, weight: 3},
+    {fn: genHitungPembagianExact, weight: 3},
+    {fn: genHitungPembagianSisa, weight: 2},
+    {fn: genHitungPecahanTambah, weight: 2},
+    {fn: genHitungPecahanKurang, weight: 2},
+    {fn: genHitungPecahanKali, weight: 2},
+    {fn: genHitungPecahanBagi, weight: 2},
+    {fn: genHitungPecahanSederhana, weight: 2},
+    {fn: genHitungAljabarTambah, weight: 2},
+    {fn: genHitungAljabarKurang, weight: 2},
+    {fn: genHitungAljabarKali, weight: 2},
+    {fn: genHitungAljabarDuaLangkah, weight: 2},
+    {fn: genHitungAljabarDuaLangkahKurang, weight: 2},
+    {fn: genHitungAljabarEvaluasi, weight: 2},
+    {fn: genHitungAljabarSederhana, weight: 1}
+  ];
+  var HITUNG_WEIGHTED_POOL = [];
+  HITUNG_GENERATORS.forEach(function(g){ for (var i=0;i<g.weight;i++) HITUNG_WEIGHTED_POOL.push(g.fn); });
+
   var MODULES = {
     maths: {
+
       id: 'maths',
       name: 'Maths',
       icon: 'M',
@@ -5817,9 +6189,20 @@
       pool: MANDARIN_WEIGHTED_POOL,
       wheelLabel: 'Mandarin',
       topicDisplayNames: { kosakata:'Kosakata', percakapan:'Percakapan' }
+    },
+    hitung: {
+      id: 'hitung',
+      name: 'Hitung Cepat',
+      icon: '÷',
+      color: '#5B8C3A',
+      tagline: 'Latihan hitungan murni — bukan soal cerita',
+      cardMeta: 'Perkalian, Pembagian, Pecahan, Aljabar — langsung angka',
+      pool: HITUNG_WEIGHTED_POOL,
+      wheelLabel: 'Hitung Cepat',
+      topicDisplayNames: { perkalian:'Perkalian', pembagian:'Pembagian', pecahan:'Pecahan', aljabar:'Aljabar' }
     }
   };
-  var MODULE_ORDER = ['maths','toefl','matematika','english','tenses','mandarin'];
+  var MODULE_ORDER = ['maths','toefl','matematika','english','tenses','mandarin','hitung'];
 
   // Bonus segments: each has its own recurring interval, and repeats forever
   // (spin #10, #20, #30... for bonus20; #15, #30, #45... for bonus50; etc).
@@ -5843,7 +6226,7 @@
   function defaultSubjectsState(){
     var obj = {};
     MODULE_ORDER.forEach(function(id){ obj[id] = { sessions: {} }; });
-    return { subjects: obj, wheelSpinCount: 0, pendingMapel: null };
+    return { subjects: obj, wheelSpinCount: 0, pendingMapel: null, toeflClue: null, pinyinSessionProgress: 0, pinyinSessionsCompleted: 0, pinyinBonusAwarded: false };
   }
   function loadState(){
     try{
@@ -5856,6 +6239,10 @@
       });
       if (typeof parsed.wheelSpinCount !== 'number') parsed.wheelSpinCount = 0;
       if (typeof parsed.pendingMapel === 'undefined') parsed.pendingMapel = null;
+      if (typeof parsed.toeflClue === 'undefined') parsed.toeflClue = null;
+      if (typeof parsed.pinyinSessionProgress !== 'number') parsed.pinyinSessionProgress = 0;
+      if (typeof parsed.pinyinSessionsCompleted !== 'number') parsed.pinyinSessionsCompleted = 0;
+      if (typeof parsed.pinyinBonusAwarded !== 'boolean') parsed.pinyinBonusAwarded = false;
       return parsed;
     } catch(e){ return defaultSubjectsState(); }
   }
@@ -5920,6 +6307,7 @@
     library: $('view-library'),
     libraryTopic: $('view-library-topic'),
     pinyin: $('view-pinyin'),
+    toeflClue: $('view-toefl-clue'),
     riwayat: $('view-riwayat'),
     points: $('view-points'),
     admin: $('view-admin')
@@ -7907,6 +8295,7 @@
     var cat = pinyinCurrentCategory();
     var item = pinyinCurrentItem();
     $('pinyinProgress').textContent = 'Kata ' + (pinyinState.itemIndex + 1) + ' / ' + cat.items.length + ' — ' + cat.label;
+    renderPinyinSessionBadge();
     $('pinyinMeaning').textContent = item.id;
     var input = $('pinyinInput');
     input.value = '';
@@ -7972,6 +8361,7 @@
   function pinyinNext(){
     var cat = pinyinCurrentCategory();
     pinyinState.itemIndex = (pinyinState.itemIndex + 1) % cat.items.length;
+    incrementPinyinSessionProgress();
     renderPinyinCard();
   }
 
@@ -7992,6 +8382,169 @@
       if (!pinyinState.checked) pinyinCheckAnswer(); else pinyinNext();
     }
   });
+
+  /* =========================================================
+     3b-2. PINYIN SESSION MILESTONE — tiap 20 kata dianggap 1 sesi.
+     Setelah 6 sesi kumulatif selesai (sekali seumur akun, bukan per
+     hari), user dapat bonus +20 poin lewat RPC yang sama dengan
+     bonus roda/pengayaan.
+  ========================================================= */
+  var PINYIN_SESSION_SIZE = 20;
+  var PINYIN_SESSION_GOAL = 6;
+
+  function awardPinyinSessionBonus(){
+    if (!currentUser) return;
+    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_bonus_points', {
+      method: 'POST',
+      headers: supaHeaders(),
+      body: JSON.stringify({ p_username: currentUser.username, p_points: 20, p_label: PINYIN_SESSION_GOAL + ' sesi latihan Pinyin selesai' })
+    }).catch(function(e){ console.error('Award pinyin session bonus failed', e); });
+  }
+
+  function incrementPinyinSessionProgress(){
+    state.pinyinSessionProgress = (state.pinyinSessionProgress || 0) + 1;
+    if (state.pinyinSessionProgress >= PINYIN_SESSION_SIZE){
+      state.pinyinSessionProgress = 0;
+      state.pinyinSessionsCompleted = (state.pinyinSessionsCompleted || 0) + 1;
+      if (state.pinyinSessionsCompleted >= PINYIN_SESSION_GOAL && !state.pinyinBonusAwarded){
+        state.pinyinBonusAwarded = true;
+        awardPinyinSessionBonus();
+      }
+    }
+    saveState(state);
+  }
+
+  function renderPinyinSessionBadge(){
+    var done = state.pinyinSessionsCompleted || 0;
+    var badge = $('pinyinSessionBadge');
+    if (state.pinyinBonusAwarded){
+      badge.textContent = '🏅 6 sesi latihan selesai — bonus +20 poin sudah kamu dapat!';
+    } else {
+      badge.textContent = 'Sesi latihan: ' + done + ' / ' + PINYIN_SESSION_GOAL + ' (selesai ' + (state.pinyinSessionProgress||0) + '/' + PINYIN_SESSION_SIZE + ' kata di sesi ini)';
+    }
+  }
+
+  /* =========================================================
+     3c. TOEFL CLUE VIEW — belajar terpandu sebelum TOEFL muncul
+     di Spin the Wheel: tiap soal dibuka dengan tips strategi
+     Bahasa Indonesia, lalu contoh soalnya jadi latihan jawab
+     sendiri. 50 soal per hari; menyelesaikan semuanya = +20 poin.
+  ========================================================= */
+  var toeflClueLocked = false;
+  var toeflClueCurrentQuestion = null;
+
+  function getOrCreateToeflClueSession(){
+    if (!state.toeflClue || state.toeflClue.date !== today){
+      var seed = seedFromString('toeflclue|' + today);
+      state.toeflClue = {
+        date: today,
+        questions: generateDailySet(TOEFL_CLUE_WEIGHTED_POOL, seed, 50),
+        answers: [],
+        completed: false
+      };
+      saveState(state);
+    }
+    return state.toeflClue;
+  }
+
+  function awardToeflClueBonus(){
+    if (!currentUser) return;
+    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_bonus_points', {
+      method: 'POST',
+      headers: supaHeaders(),
+      body: JSON.stringify({ p_username: currentUser.username, p_points: 20, p_label: 'Clue TOEFL selesai' })
+    }).catch(function(e){ console.error('Award TOEFL clue points failed', e); });
+  }
+
+  function renderToeflClueCard(){
+    var session = getOrCreateToeflClueSession();
+    var idx = session.answers.length;
+    var mainCard = $('toeflClueMainCard');
+
+    if (idx >= session.questions.length){
+      if (!session.completed){
+        session.completed = true;
+        saveState(state);
+        awardToeflClueBonus();
+      }
+      if (mainCard) mainCard.style.display = 'none';
+      $('toeflClueDoneCard').style.display = 'block';
+      $('toeflClueDoneText').textContent = 'Kamu sudah menyelesaikan ' + session.questions.length + ' soal clue TOEFL hari ini. +20 poin sudah ditambahkan! Balik lagi besok untuk clue baru.';
+      $('toeflClueRulerFill').style.width = '100%';
+      $('toeflClueProgressText').textContent = 'Selesai — ' + session.questions.length + '/' + session.questions.length;
+      return;
+    }
+    if (mainCard) mainCard.style.display = '';
+    $('toeflClueDoneCard').style.display = 'none';
+
+    var q = session.questions[idx];
+    toeflClueLocked = false;
+    toeflClueCurrentQuestion = q;
+
+    var pct = Math.round((idx / session.questions.length) * 100);
+    $('toeflClueRulerFill').style.width = pct + '%';
+    buildTicks($('toeflClueRulerTicks'), 10, 0);
+    $('toeflClueProgressText').textContent = 'Soal ' + (idx+1) + ' / ' + session.questions.length;
+    var scoreSoFar = session.answers.filter(function(a){return a.correct;}).length;
+    $('toeflClueScoreText').textContent = 'Skor ' + scoreSoFar;
+
+    $('toeflClueTipBox').innerHTML = '💡 <b>Tips:</b> ' + q.tip;
+    $('toeflClueTopicTag').textContent = q.topicLabel.toUpperCase();
+    $('toeflClueQuestionText').textContent = q.prompt;
+
+    var choicesEl = $('toeflClueChoices');
+    choicesEl.innerHTML = '';
+    var letters = ['A','B','C','D'];
+    q.options.forEach(function(optText, i){
+      var btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.innerHTML = '<span class="choice-letter">' + letters[i] + '</span><span>' + optText + '</span>';
+      btn.addEventListener('click', function(){ handleToeflClueAnswer(optText, btn); });
+      choicesEl.appendChild(btn);
+    });
+
+    $('toeflClueFeedback').className = 'feedback';
+    $('toeflClueNextWrap').className = 'next-wrap';
+  }
+
+  function handleToeflClueAnswer(selectedText, btnEl){
+    if (toeflClueLocked) return;
+    toeflClueLocked = true;
+    var session = getOrCreateToeflClueSession();
+    var q = toeflClueCurrentQuestion;
+    var isCorrect = selectedText === q.correctText;
+
+    var choiceButtons = $('toeflClueChoices').querySelectorAll('.choice');
+    choiceButtons.forEach(function(b){
+      b.classList.add('locked');
+      var label = b.querySelector('span:last-child').textContent;
+      if (label === q.correctText){ b.classList.add('correct'); }
+      else if (b === btnEl){ b.classList.add('incorrect'); }
+      else { b.classList.add('dim'); }
+    });
+
+    var fb = $('toeflClueFeedback');
+    fb.className = 'feedback show ' + (isCorrect ? 'is-correct' : 'is-incorrect');
+    $('toeflClueFeedbackHead').textContent = isCorrect ? 'Benar!' : 'Belum tepat — jawaban yang benar: ' + q.correctText;
+    $('toeflClueFeedbackBody').textContent = q.explanation;
+    $('toeflClueNextWrap').className = 'next-wrap show';
+
+    session.answers.push({ prompt: q.prompt, selected: selectedText, correctText: q.correctText, correct: isCorrect });
+    saveState(state);
+
+    var scoreSoFar = session.answers.filter(function(a){return a.correct;}).length;
+    $('toeflClueScoreText').textContent = 'Skor ' + scoreSoFar;
+  }
+
+  function renderToeflClueLesson(){
+    renderToeflClueCard();
+    showView('toeflClue');
+  }
+
+  $('topbarToeflClueBtn').addEventListener('click', function(){ renderToeflClueLesson(); });
+  $('toeflClueBackBtn').addEventListener('click', function(){ renderHub(); });
+  $('toeflClueDoneBackBtn').addEventListener('click', function(){ renderHub(); });
+  $('toeflClueNextBtn').addEventListener('click', function(){ renderToeflClueCard(); });
 
   /* =========================================================
      3c. TOEFL BANK SYNC — pull curated question bank from Supabase,

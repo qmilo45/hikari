@@ -6,7 +6,7 @@
 <title>Hikari Bima Sakti — Daily Practice</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink: #16213E;
@@ -42,13 +42,13 @@
     padding:20px 18px 64px;
   }
   .eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    letter-spacing:0.14em;
+    font-family:'Cinzel', serif;
+    font-size:16px;
+    letter-spacing:0.12em;
     text-transform:uppercase;
     color:var(--gold-deep);
     font-weight:600;
-    margin-bottom:6px;
+    margin-bottom:8px;
   }
   h1{
     font-family:'Fraunces', serif;
@@ -767,13 +767,13 @@
     text-align:center;
   }
   .login-eyebrow{
-    font-family:'IBM Plex Mono', monospace;
-    font-size:11px;
-    letter-spacing:.14em;
+    font-family:'Cinzel', serif;
+    font-size:19px;
+    letter-spacing:.1em;
     text-transform:uppercase;
     color:var(--gold-deep);
     font-weight:600;
-    margin-bottom:6px;
+    margin-bottom:8px;
   }
   .login-title{
     font-family:'Fraunces', serif;
@@ -1536,6 +1536,12 @@
         <div class="big" id="resultScoreBig">0/50</div>
         <div class="acc" id="resultAcc">0% accuracy</div>
       </div>
+    </div>
+
+    <div class="card" id="resultBonusCard" style="display:none;">
+      <div class="card-title" style="font-size:16px;" id="resultBonusTitle">Pengayaan</div>
+      <p class="card-sub" id="resultBonusSub">—</p>
+      <div id="resultBonusActions" style="display:flex; flex-direction:column; gap:10px;"></div>
     </div>
 
     <div class="card">
@@ -5837,6 +5843,22 @@
     // left disabled (it only re-enables once isPendingMapelActive() is
     // false again, i.e. after this mapel's session is completed).
     currentSubject = winner.id;
+    // If this subject was already finished earlier today (a repeat pick
+    // after a full round), start a fresh round with new questions instead
+    // of just re-showing the old result — this new round gets its own
+    // independent 1x remedial/pengayaan chance.
+    if (isSubjectCompletedToday(winner.id)){
+      var subj = state.subjects[winner.id];
+      var freshMod = MODULES[winner.id];
+      var freshSeed = Date.now() % 2147483647;
+      subj.sessions[today] = {
+        date: today,
+        questions: generateDailySet(freshMod.pool, freshSeed, getDailyCount(winner.id)),
+        answers: [],
+        index: 0,
+        completed: false
+      };
+    }
     state.pendingMapel = { subjectId: winner.id, date: today };
     saveState(state);
 
@@ -6964,13 +6986,97 @@
 
   var currentQuestion = null;
   var locked = false;
+  var enrichmentMode = false;
+  var enrichmentSession = null; // { subjectId, questions, answers } — separate from the daily session
+
+  var ENRICHMENT_COUNT = 5;
+
+  function getActiveCount(subjectId){
+    return enrichmentMode ? ENRICHMENT_COUNT : getDailyCount(subjectId);
+  }
+
+  function activeQuizSession(subjectId){
+    return (enrichmentMode && enrichmentSession) ? enrichmentSession : getOrCreateTodaySession(subjectId);
+  }
+
+  function startEnrichment(subjectId){
+    var mod = MODULES[subjectId];
+    var todaySession = getOrCreateTodaySession(subjectId);
+    var usedPrompts = {};
+    todaySession.questions.forEach(function(q){ usedPrompts[q.prompt] = true; });
+    var freshSeed = Date.now() % 2147483647;
+    var pool = mod.pool;
+    var picked = [];
+    var attempts = 0;
+    while (picked.length < ENRICHMENT_COUNT && attempts < 20){
+      var batch = generateDailySet(pool, freshSeed + attempts, ENRICHMENT_COUNT);
+      batch.forEach(function(q){
+        if (picked.length < ENRICHMENT_COUNT && !usedPrompts[q.prompt]){
+          picked.push(q);
+          usedPrompts[q.prompt] = true;
+        }
+      });
+      attempts++;
+    }
+    if (picked.length < ENRICHMENT_COUNT){
+      // fallback: top up with a plain fresh batch even if a couple overlap
+      var topUp = generateDailySet(pool, freshSeed + 99, ENRICHMENT_COUNT - picked.length);
+      picked = picked.concat(topUp);
+    }
+    enrichmentSession = { subjectId: subjectId, questions: picked.slice(0, ENRICHMENT_COUNT), answers: [] };
+    enrichmentMode = true;
+    logActivity(subjectId, 'enrichment_start');
+    renderQuiz();
+  }
+
+  function awardEnrichmentPoints(subjectId, bonus, perfect){
+    if (!currentUser) return;
+    var mod = MODULES[subjectId];
+    var label = 'Pengayaan ' + (mod ? mod.name : subjectId) + (perfect ? ' (sempurna)' : '');
+    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_bonus_points', {
+      method: 'POST',
+      headers: supaHeaders(),
+      body: JSON.stringify({ p_username: currentUser.username, p_points: bonus, p_label: label })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if (Array.isArray(rows) && rows.length && typeof rows[0].new_balance === 'number'){
+          pointsBalanceCache = rows[0].new_balance;
+        }
+      })
+      .catch(function(e){ console.error('Award enrichment points failed', e); });
+  }
+
+  function finishEnrichment(){
+    var subjectId = enrichmentSession.subjectId;
+    var correctCount = enrichmentSession.answers.filter(function(a){ return a.correct; }).length;
+    var perfect = correctCount === ENRICHMENT_COUNT;
+    var bonus = perfect ? 50 : 20;
+    awardEnrichmentPoints(subjectId, bonus, perfect);
+    var subj = state.subjects[subjectId];
+    var s = subj.sessions[today];
+    if (s){
+      s.enrichmentDone = true;
+      s.enrichmentPerfect = perfect;
+      s.enrichmentCorrect = correctCount;
+      s.enrichmentBonus = bonus;
+      saveState(state);
+    }
+    logActivity(subjectId, 'enrichment_complete');
+    enrichmentMode = false;
+    enrichmentSession = null;
+    currentSubject = subjectId;
+    renderResult();
+  }
 
   function renderQuiz(){
     var subjectId = currentSubject;
-    var session = getOrCreateTodaySession(subjectId);
-    if (session.completed){ renderResult(); return; }
+    var count = getActiveCount(subjectId);
+    var session = activeQuizSession(subjectId);
+    if (!enrichmentMode && session.completed){ renderResult(); return; }
     var idx = session.answers.length;
-    if (idx >= getDailyCount(subjectId)){
+    if (idx >= count){
+      if (enrichmentMode){ finishEnrichment(); return; }
       session.completed = true;
       saveState(state);
       logActivity(subjectId, 'complete');
@@ -6981,15 +7087,15 @@
     currentQuestion = session.questions[idx];
     locked = false;
 
-    var pct = Math.round((idx / getDailyCount(subjectId)) * 100);
+    var pct = Math.round((idx / count) * 100);
     $('quizRulerFill').style.width = pct + '%';
     buildTicks($('quizRulerTicks'), 10, 0);
-    $('quizProgressText').textContent = 'Question ' + (idx+1) + ' / ' + getDailyCount(subjectId);
+    $('quizProgressText').textContent = 'Question ' + (idx+1) + ' / ' + count;
     var scoreSoFar = session.answers.filter(function(a){return a.correct;}).length;
     $('quizScoreText').textContent = 'Score ' + scoreSoFar;
 
     var wrongSoFar = idx - scoreSoFar;
-    var showRestart = idx >= 5 && (wrongSoFar / idx) >= 0.5;
+    var showRestart = !enrichmentMode && idx >= 5 && (wrongSoFar / idx) >= 0.5;
     $('quizRestartBtn').style.display = showRestart ? 'block' : 'none';
 
     $('quizTopicTag').textContent = currentQuestion.topicLabel.toUpperCase();
@@ -7015,7 +7121,7 @@
   function handleAnswer(selectedText, btnEl){
     if (locked) return;
     locked = true;
-    var session = getOrCreateTodaySession(currentSubject);
+    var session = activeQuizSession(currentSubject);
     var isCorrect = selectedText === currentQuestion.correctText;
 
     var choiceButtons = $('quizChoices').querySelectorAll('.choice');
@@ -7050,7 +7156,7 @@
       correctText: currentQuestion.correctText,
       correct: isCorrect
     });
-    saveState(state);
+    if (!enrichmentMode) saveState(state);
 
     var scoreSoFar = session.answers.filter(function(a){return a.correct;}).length;
     $('quizScoreText').textContent = 'Score ' + scoreSoFar;
@@ -7073,15 +7179,99 @@
     renderQuiz();
   }
 
+  function hasUsedRemedialInSession(session){
+    return !!session.remedialUsed;
+  }
+
+  function markRemedialUsed(session){
+    session.remedialUsed = true;
+    saveState(state);
+  }
+
+  function startFullRemedial(subjectId){
+    restartSessionFresh(subjectId); // creates a brand-new session with fresh questions
+    markRemedialUsed(getOrCreateTodaySession(subjectId)); // this new round gets its own single remedial chance, already spent
+    logActivity(subjectId, 'remedial_start');
+  }
+
+  function renderResultBonusCard(subjectId, session, wrongCount){
+    var card = $('resultBonusCard');
+    var titleEl = $('resultBonusTitle');
+    var subEl = $('resultBonusSub');
+    var actionsEl = $('resultBonusActions');
+    actionsEl.innerHTML = '';
+
+    if (wrongCount <= 0){
+      card.style.display = 'none';
+      return;
+    }
+
+    if (wrongCount <= 5){
+      card.style.display = 'block';
+      if (session.enrichmentDone){
+        titleEl.textContent = session.enrichmentPerfect ? '🌟 Pengayaan selesai — sempurna!' : 'Pengayaan selesai';
+        subEl.textContent = session.enrichmentPerfect
+          ? '5 soal tambahan benar semua. +' + session.enrichmentBonus + ' poin sudah ditambahkan.'
+          : session.enrichmentCorrect + '/5 soal tambahan benar. +' + session.enrichmentBonus + ' poin sudah ditambahkan.';
+        return;
+      }
+      titleEl.textContent = '✨ Latihan Pengayaan';
+      subEl.textContent = '80 poin sudah kamu dapat. Mau coba 5 soal tambahan? Benar semua dapat tambahan 50 poin, kalau ada yang salah tetap dapat tambahan 20 poin.';
+      var startBtn = document.createElement('button');
+      startBtn.className = 'btn btn-primary';
+      startBtn.textContent = 'Mulai Pengayaan (5 soal)';
+      startBtn.addEventListener('click', function(){ startEnrichment(subjectId); });
+      var skipBtn = document.createElement('button');
+      skipBtn.className = 'btn btn-ghost';
+      skipBtn.textContent = 'Tidak, cukup 80 poin';
+      skipBtn.addEventListener('click', function(){ card.style.display = 'none'; });
+      actionsEl.appendChild(startBtn);
+      actionsEl.appendChild(skipBtn);
+      return;
+    }
+
+    // wrongCount > 5
+    card.style.display = 'block';
+    if (hasUsedRemedialInSession(session)){
+      titleEl.textContent = '📘 Remedial';
+      subEl.textContent = 'Kamu dapat 20 poin. Kesempatan remedial hari ini sudah kamu pakai — lanjut ke Spin the Wheel yuk.';
+      var wheelOnlyBtn = document.createElement('button');
+      wheelOnlyBtn.className = 'btn btn-primary';
+      wheelOnlyBtn.textContent = 'Lanjut ke Spin the Wheel';
+      wheelOnlyBtn.addEventListener('click', function(){ renderHub(); });
+      actionsEl.appendChild(wheelOnlyBtn);
+      return;
+    }
+    titleEl.textContent = '📘 Remedial';
+    subEl.textContent = 'Kamu dapat 20 poin. Mau remedial dengan 50 soal baru (benar semua = 100 poin, salah maks 5 = 80 poin, salah lebih dari 5 = 20 poin), atau lanjut ke Spin the Wheel? Kesempatan remedial ini hanya berlaku 1x.';
+    var redoBtn = document.createElement('button');
+    redoBtn.className = 'btn btn-primary';
+    redoBtn.textContent = '⟲ Remedial (50 soal baru, 1x kesempatan)';
+    redoBtn.addEventListener('click', function(){
+      if (window.confirm('Mulai remedial dengan 50 soal baru? Kesempatan ini hanya bisa dipakai 1x hari ini.')){
+        startFullRemedial(subjectId);
+      }
+    });
+    var wheelBtn = document.createElement('button');
+    wheelBtn.className = 'btn btn-ghost';
+    wheelBtn.textContent = 'Lanjut ke Spin the Wheel';
+    wheelBtn.addEventListener('click', function(){ renderHub(); });
+    actionsEl.appendChild(redoBtn);
+    actionsEl.appendChild(wheelBtn);
+  }
+
   function renderResult(){
     var subjectId = currentSubject;
     var mod = MODULES[subjectId];
     var session = getOrCreateTodaySession(subjectId);
     var correctCount = session.answers.filter(function(a){return a.correct;}).length;
     var accuracy = Math.round((correctCount / getDailyCount(subjectId)) * 100);
+    var wrongCount = session.answers.length - correctCount;
 
     $('resultScoreBig').textContent = correctCount + '/' + getDailyCount(subjectId);
     $('resultAcc').textContent = accuracy + '% accuracy';
+
+    renderResultBonusCard(subjectId, session, wrongCount);
 
     var topicTotals = {};
     var topicCorrect = {};

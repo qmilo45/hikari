@@ -313,6 +313,12 @@
   .pinyin-meaning{ text-align:center; font-family:'Fraunces', serif; font-size:24px; font-weight:600; color:var(--ink); margin-bottom:18px; }
   .pinyin-audio-btn{ display:block; margin:0 auto 22px; width:56px; height:56px; border-radius:50%; border:1.5px solid var(--line); background:var(--paper); font-size:24px; cursor:pointer; transition:transform .12s ease; }
   .pinyin-audio-btn:active{ transform:scale(0.94); }
+  .quiz-audio-btn{ display:none; margin:0 0 10px; width:38px; height:38px; border-radius:50%; border:1.5px solid var(--line); background:var(--paper); font-size:17px; cursor:pointer; transition:transform .12s ease; align-items:center; justify-content:center; }
+  .quiz-audio-btn:active{ transform:scale(0.92); }
+  .quiz-audio-btn.show{ display:inline-flex; }
+  .quiz-hint-btn{ display:block; margin:0 0 14px; padding:8px 14px; border-radius:8px; border:1.5px dashed var(--line); background:var(--paper); font-size:13px; font-weight:600; color:var(--ink-soft); cursor:pointer; }
+  .quiz-hint-btn:active{ transform:scale(0.97); }
+  .quiz-hint-box{ background:var(--paper-raised); border:1.5px dashed var(--line); border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; color:var(--ink-soft); margin:0 0 14px; white-space:pre-line; }
   .pinyin-input-row{ margin-bottom:8px; }
   .pinyin-input{ width:100%; padding:14px 16px; border-radius:11px; border:1.5px solid var(--line); font-size:16px; font-family:'IBM Plex Mono', monospace; color:var(--ink); background:var(--paper-raised); }
   .pinyin-input:focus{ outline:none; border-color:var(--ink-soft); }
@@ -1456,8 +1462,12 @@
 
     <div class="card">
       <div class="topic-tag" id="quizTopicTag">TOPIC</div>
+      <button class="quiz-audio-btn" id="quizAudioBtn" title="Dengarkan pelafalan">&#128266;</button>
       <p class="question-text" id="quizQuestionText">Question text</p>
       <div class="choices" id="quizChoices"></div>
+
+      <button class="quiz-hint-btn" id="quizHintBtn" type="button">💡 Lihat Hint</button>
+      <div class="quiz-hint-box" id="quizHintBox" style="display:none;"></div>
 
       <div class="feedback" id="quizFeedback">
         <div class="feedback-head" id="quizFeedbackHead"></div>
@@ -3739,7 +3749,7 @@
     return {
       topic:'vocabulary', topicLabel:'Vocabulary',
       prompt: phrase,
-      correctText: item.correct, options: options,
+      correctText: item.correct, options: options, optionsLang: 'en-US',
       explanation: "Synonym questions test whether you know a word's meaning well enough to swap it for another word without changing the sentence's meaning. \"" + item.word + "\" most nearly means \"" + item.correct + "\"."
     };
   }
@@ -3751,7 +3761,7 @@
     return {
       topic:'vocabulary', topicLabel:'Vocabulary',
       prompt: phrase,
-      correctText: item.correct, options: options,
+      correctText: item.correct, options: options, optionsLang: 'en-US',
       explanation: "Antonym questions check the opposite skill from synonyms — instead of finding a matching word, you're looking for the one that means the complete reverse. \"" + item.correct + "\" is the opposite of \"" + item.word + "\"."
     };
   }
@@ -3761,7 +3771,7 @@
     return {
       topic:'grammar', topicLabel:'Grammar & Usage',
       prompt: item.prompt,
-      correctText: item.correct, options: options,
+      correctText: item.correct, options: options, optionsLang: 'en-US',
       explanation: item.explanation
     };
   }
@@ -3771,7 +3781,7 @@
     return {
       topic:'reading', topicLabel:'Reading Comprehension',
       prompt: item.passage + "\n\n" + item.question,
-      correctText: item.correct, options: options,
+      correctText: item.correct, options: options, optionsLang: 'en-US',
       explanation: item.explanation
     };
   }
@@ -3783,7 +3793,7 @@
     return {
       topic:'reading', topicLabel:'Reading Comprehension',
       prompt: item.passage + "\n\nIn this passage, the word \"" + cw.word + "\" most nearly means:",
-      correctText: cw.correct, options: options,
+      correctText: cw.correct, options: options, optionsLang: 'en-US',
       explanation: "Many words have more than one possible meaning, so the surrounding sentences — not the word alone — are what tell you which meaning is intended here. In context, \"" + cw.word + "\" is used to mean \"" + cw.correct + "\"."
     };
   }
@@ -5747,7 +5757,7 @@
     return {
       topic:'kosakata', topicLabel:'Kosakata',
       prompt: "Apa arti kata/frasa Mandarin berikut?\n\n" + item.zh,
-      correctText: item.id, options: options,
+      correctText: item.id, options: options, promptAudio: item.zh,
       explanation: "Menghafal kosakata paling efektif dilakukan dengan mengaitkan bunyi/karakter Mandarin secara langsung ke maknanya dalam bahasa yang sudah dikuasai, bukan menghafal ejaan Pinyin saja. \"" + item.zh + "\" artinya \"" + item.id + "\"."
     };
   }
@@ -5759,7 +5769,7 @@
     return {
       topic:'kosakata', topicLabel:'Kosakata',
       prompt: "Bagaimana mengatakan \"" + item.id + "\" dalam Mandarin (Pinyin)?",
-      correctText: item.zh, options: options,
+      correctText: item.zh, options: options, optionsLang: 'zh-CN',
       explanation: "Berbeda dari soal 'apa artinya', soal ini melatih arah sebaliknya — mengubah dari bahasa Indonesia ke Mandarin — yang menguji apakah kosakata benar-benar sudah dikuasai secara aktif, bukan hanya dikenali. \"" + item.id + "\" dalam Mandarin adalah \"" + item.zh + "\"."
     };
   }
@@ -5772,7 +5782,7 @@
     return {
       topic:'percakapan', topicLabel:'Percakapan',
       prompt: "Apa jawaban yang tepat untuk percakapan berikut?\n\n\"" + pair.q + "\"\n(" + pair.qId + ")",
-      correctText: pair.a, options: options,
+      correctText: pair.a, options: options, optionsLang: 'zh-CN', promptAudio: pair.q,
       explanation: "Dalam percakapan sehari-hari, jenis pertanyaan (misalnya tentang kabar, nama, atau arah) menentukan jenis jawaban yang wajar diberikan, bukan sekadar kalimat yang terdengar sopan. Jawaban yang tepat: \"" + pair.a + "\" — artinya \"" + pair.aId + "\"."
     };
   }
@@ -5785,7 +5795,7 @@
     return {
       topic:'percakapan', topicLabel:'Percakapan',
       prompt: "Apa arti kalimat Mandarin berikut?\n\n\"" + pair.q + "\"",
-      correctText: pair.qId, options: options,
+      correctText: pair.qId, options: options, promptAudio: pair.q,
       explanation: "Memahami kalimat percakapan penuh lebih menantang daripada kosakata tunggal, karena artinya dibentuk oleh gabungan seluruh kata dalam kalimat, bukan diterjemahkan kata demi kata. \"" + pair.q + "\" artinya \"" + pair.qId + "\"."
     };
   }
@@ -7727,6 +7737,17 @@
     renderResult();
   }
 
+  function speak(text, lang, rate){
+    try{
+      if (!('speechSynthesis' in window) || !text) return;
+      window.speechSynthesis.cancel();
+      var utter = new SpeechSynthesisUtterance(text);
+      utter.lang = lang;
+      utter.rate = rate || 0.85;
+      window.speechSynthesis.speak(utter);
+    } catch(e){ console.error('TTS failed', e); }
+  }
+
   function renderQuiz(){
     var subjectId = currentSubject;
     var count = getActiveCount(subjectId);
@@ -7759,6 +7780,32 @@
     $('quizTopicTag').textContent = currentQuestion.topicLabel.toUpperCase();
     $('quizQuestionText').textContent = currentQuestion.prompt;
 
+    var audioBtn = $('quizAudioBtn');
+    if (currentQuestion.promptAudio){
+      audioBtn.classList.add('show');
+      audioBtn.onclick = function(){ speak(currentQuestion.promptAudio, 'zh-CN'); };
+    } else {
+      audioBtn.classList.remove('show');
+      audioBtn.onclick = null;
+    }
+
+    var hintBtn = $('quizHintBtn');
+    var hintBox = $('quizHintBox');
+    hintBox.style.display = 'none';
+    hintBox.textContent = '';
+    hintBtn.textContent = '💡 Lihat Hint';
+    hintBtn.style.display = currentQuestion.explanation ? 'block' : 'none';
+    hintBtn.onclick = function(){
+      if (hintBox.style.display === 'none'){
+        hintBox.textContent = currentQuestion.explanation;
+        hintBox.style.display = 'block';
+        hintBtn.textContent = '🙈 Sembunyikan Hint';
+      } else {
+        hintBox.style.display = 'none';
+        hintBtn.textContent = '💡 Lihat Hint';
+      }
+    };
+
     var choicesEl = $('quizChoices');
     choicesEl.innerHTML = '';
     var letters = ['A','B','C','D'];
@@ -7766,7 +7813,10 @@
       var btn = document.createElement('button');
       btn.className = 'choice';
       btn.innerHTML = '<span class="choice-letter">' + letters[i] + '</span><span>' + optText + '</span>';
-      btn.addEventListener('click', function(){ handleAnswer(optText, btn); });
+      btn.addEventListener('click', function(){
+        if (currentQuestion.optionsLang) speak(optText, currentQuestion.optionsLang);
+        handleAnswer(optText, btn);
+      });
       choicesEl.appendChild(btn);
     });
 
@@ -7781,6 +7831,9 @@
     locked = true;
     var session = activeQuizSession(currentSubject);
     var isCorrect = selectedText === currentQuestion.correctText;
+
+    $('quizHintBtn').style.display = 'none';
+    $('quizHintBox').style.display = 'none';
 
     var choiceButtons = $('quizChoices').querySelectorAll('.choice');
     choiceButtons.forEach(function(b){

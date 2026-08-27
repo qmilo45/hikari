@@ -1632,9 +1632,10 @@
     <div class="card">
       <div class="card-title" style="font-size:15px;">Cara Dapat Poin</div>
       <div class="points-rules">
-        <div class="points-rule-row"><span class="points-rule-cond">Semua benar (0 salah)</span><span class="points-rule-val">100 poin</span></div>
-        <div class="points-rule-row"><span class="points-rule-cond">Salah maks. 5 soal</span><span class="points-rule-val">80 poin</span></div>
-        <div class="points-rule-row"><span class="points-rule-cond">Salah lebih dari 5 soal</span><span class="points-rule-val">20 poin</span></div>
+        <div class="points-rule-row"><span class="points-rule-cond">Nilai per sesi (50 soal)</span><span class="points-rule-val">2 poin / soal benar</span></div>
+        <div class="points-rule-row"><span class="points-rule-cond">Contoh: 25 benar dari 50</span><span class="points-rule-val">50 poin</span></div>
+        <div class="points-rule-row"><span class="points-rule-cond">Semua benar (50/50)</span><span class="points-rule-val">100 poin</span></div>
+        <div class="points-rule-row"><span class="points-rule-cond">5 mapel sempurna di hari yang sama</span><span class="points-rule-val">+1.000 poin bonus</span></div>
       </div>
     </div>
 
@@ -6236,7 +6237,7 @@
   function defaultSubjectsState(){
     var obj = {};
     MODULE_ORDER.forEach(function(id){ obj[id] = { sessions: {} }; });
-    return { subjects: obj, wheelSpinCount: 0, pendingMapel: null, toeflClue: null, pinyinSessionProgress: 0, pinyinSessionsCompleted: 0, pinyinBonusAwarded: false };
+    return { subjects: obj, wheelSpinCount: 0, pendingMapel: null, toeflClue: null, pinyinSessionProgress: 0, pinyinSessionsCompleted: 0, pinyinBonusAwarded: false, perfectBonusDate: null };
   }
   function loadState(){
     try{
@@ -6253,6 +6254,7 @@
       if (typeof parsed.pinyinSessionProgress !== 'number') parsed.pinyinSessionProgress = 0;
       if (typeof parsed.pinyinSessionsCompleted !== 'number') parsed.pinyinSessionsCompleted = 0;
       if (typeof parsed.pinyinBonusAwarded !== 'boolean') parsed.pinyinBonusAwarded = false;
+      if (typeof parsed.perfectBonusDate === 'undefined') parsed.perfectBonusDate = null;
       return parsed;
     } catch(e){ return defaultSubjectsState(); }
   }
@@ -7083,19 +7085,50 @@
     if (!currentUser) return;
     var correctCount = session.answers.filter(function(a){ return a.correct; }).length;
     var total = session.answers.length;
-    var wrongCount = total - correctCount;
-    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_points', {
+    var points = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+    var mod = MODULES[subjectId];
+    var label = (mod ? mod.name : subjectId) + ' — ' + correctCount + '/' + total + ' benar';
+    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_bonus_points', {
       method: 'POST',
       headers: supaHeaders(),
-      body: JSON.stringify({
-        p_username: currentUser.username,
-        p_subject_id: subjectId,
-        p_session_date: todayKey(),
-        p_correct_count: correctCount,
-        p_wrong_count: wrongCount,
-        p_total_questions: total
+      body: JSON.stringify({ p_username: currentUser.username, p_points: points, p_label: label })
+    })
+      .then(function(r){ return r.json(); })
+      .then(function(rows){
+        if (Array.isArray(rows) && rows.length && typeof rows[0].new_balance === 'number'){
+          pointsBalanceCache = rows[0].new_balance;
+        }
       })
-    }).catch(function(e){ console.error('Award points failed', e); });
+      .catch(function(e){ console.error('Award points failed', e); });
+    checkPerfectSubjectsBonus();
+  }
+
+  /* =========================================================
+     3d-2. BONUS 5 MAPEL SEMPURNA — kalau dalam satu hari yang
+     sama ada 5 mapel berbeda yang diselesaikan dengan 0 salah,
+     user dapat bonus +1000 poin sekali per hari.
+  ========================================================= */
+  function checkPerfectSubjectsBonus(){
+    var perfectCount = 0;
+    MODULE_ORDER.forEach(function(id){
+      var subj = state.subjects[id];
+      var s = subj && subj.sessions[today];
+      if (s && s.completed && s.answers.length > 0){
+        var correct = s.answers.filter(function(a){ return a.correct; }).length;
+        if (correct === s.answers.length) perfectCount++;
+      }
+    });
+    if (perfectCount >= 5 && state.perfectBonusDate !== today){
+      state.perfectBonusDate = today;
+      saveState(state);
+      if (currentUser){
+        fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_bonus_points', {
+          method: 'POST',
+          headers: supaHeaders(),
+          body: JSON.stringify({ p_username: currentUser.username, p_points: 1000, p_label: '5 mapel sempurna hari ini' })
+        }).catch(function(e){ console.error('Award perfect-subjects bonus failed', e); });
+      }
+    }
   }
 
   function loadPointsBalance(cb){
@@ -7905,7 +7938,7 @@
     logActivity(subjectId, 'remedial_start');
   }
 
-  function renderResultBonusCard(subjectId, session, wrongCount){
+  function renderResultBonusCard(subjectId, session, wrongCount, basePoints){
     var card = $('resultBonusCard');
     var titleEl = $('resultBonusTitle');
     var subEl = $('resultBonusSub');
@@ -7927,14 +7960,14 @@
         return;
       }
       titleEl.textContent = '✨ Latihan Pengayaan';
-      subEl.textContent = '80 poin sudah kamu dapat. Mau coba 5 soal tambahan? Benar semua dapat tambahan 50 poin, kalau ada yang salah tetap dapat tambahan 20 poin.';
+      subEl.textContent = basePoints + ' poin sudah kamu dapat dari sesi ini. Mau coba 5 soal tambahan? Benar semua dapat tambahan 50 poin, kalau ada yang salah tetap dapat tambahan 20 poin.';
       var startBtn = document.createElement('button');
       startBtn.className = 'btn btn-primary';
       startBtn.textContent = 'Mulai Pengayaan (5 soal)';
       startBtn.addEventListener('click', function(){ startEnrichment(subjectId); });
       var skipBtn = document.createElement('button');
       skipBtn.className = 'btn btn-ghost';
-      skipBtn.textContent = 'Tidak, cukup 80 poin';
+      skipBtn.textContent = 'Tidak, cukup ' + basePoints + ' poin';
       skipBtn.addEventListener('click', function(){ card.style.display = 'none'; });
       actionsEl.appendChild(startBtn);
       actionsEl.appendChild(skipBtn);
@@ -7945,7 +7978,7 @@
     card.style.display = 'block';
     if (hasUsedRemedialInSession(session)){
       titleEl.textContent = '📘 Remedial';
-      subEl.textContent = 'Kamu dapat 20 poin. Kesempatan remedial hari ini sudah kamu pakai — lanjut ke Spin the Wheel yuk.';
+      subEl.textContent = 'Kamu dapat ' + basePoints + ' poin. Kesempatan remedial hari ini sudah kamu pakai — lanjut ke Spin the Wheel yuk.';
       var wheelOnlyBtn = document.createElement('button');
       wheelOnlyBtn.className = 'btn btn-primary';
       wheelOnlyBtn.textContent = 'Lanjut ke Spin the Wheel';
@@ -7954,7 +7987,7 @@
       return;
     }
     titleEl.textContent = '📘 Remedial';
-    subEl.textContent = 'Kamu dapat 20 poin. Mau remedial dengan 50 soal baru (benar semua = 100 poin, salah maks 5 = 80 poin, salah lebih dari 5 = 20 poin), atau lanjut ke Spin the Wheel? Kesempatan remedial ini hanya berlaku 1x.';
+    subEl.textContent = 'Kamu dapat ' + basePoints + ' poin. Mau remedial dengan 50 soal baru (poin dihitung ulang sesuai jumlah jawaban benar, maksimal 100 poin), atau lanjut ke Spin the Wheel? Kesempatan remedial ini hanya berlaku 1x.';
     var redoBtn = document.createElement('button');
     redoBtn.className = 'btn btn-primary';
     redoBtn.textContent = '⟲ Remedial (50 soal baru, 1x kesempatan)';
@@ -7978,11 +8011,12 @@
     var correctCount = session.answers.filter(function(a){return a.correct;}).length;
     var accuracy = Math.round((correctCount / getDailyCount(subjectId)) * 100);
     var wrongCount = session.answers.length - correctCount;
+    var basePoints = session.answers.length > 0 ? Math.round((correctCount / session.answers.length) * 100) : 0;
 
     $('resultScoreBig').textContent = correctCount + '/' + getDailyCount(subjectId);
     $('resultAcc').textContent = accuracy + '% accuracy';
 
-    renderResultBonusCard(subjectId, session, wrongCount);
+    renderResultBonusCard(subjectId, session, wrongCount, basePoints);
 
     var topicTotals = {};
     var topicCorrect = {};

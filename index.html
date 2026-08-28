@@ -7781,6 +7781,53 @@
     } catch(e){ console.error('TTS failed', e); }
   }
 
+  /* =========================================================
+     3d-3. HINT TANPA JAWABAN — hint diambil dari teks pembahasan
+     (explanation), tapi kalimat yang menyebutkan angka/nilai
+     spesifik dari SOAL INI (atau jawaban akhirnya) dibuang dulu.
+     Yang tersisa cuma konsep/metodenya secara umum — bukan langkah
+     hitung dengan angka soal itu sendiri — supaya user tetap harus
+     menerapkannya sendiri, bukan tinggal menyalin.
+  ========================================================= */
+  var TOPIC_GENERIC_HINTS = {
+    aljabar: 'Cari nilai x dengan membalik operasinya: kalau soalnya menjumlahkan, baliknya mengurangi; kalau mengalikan, baliknya membagi.',
+    bilangan: 'Perhatikan pola atau nilai tempat pada bilangannya sebelum menghitung.',
+    data: 'Baca dulu semua datanya dengan teliti sebelum menjawab pertanyaannya.',
+    fillBlank: 'Baca seluruh kalimatnya dulu supaya tahu kata apa yang cocok mengisi bagian yang kosong.',
+    geometry: 'Ingat rumus dasar bangun datar/ruang yang ditanya sebelum menghitung.',
+    grammar: 'Perhatikan subjek, waktu kejadian, dan pola kalimatnya sebelum memilih jawaban.',
+    identify: 'Perhatikan ciri-ciri utama pada soal untuk mengenali jawabannya.',
+    kosakata: 'Ingat-ingat lagi arti atau pelafalan katanya sebelum memilih.',
+    markerMatch: 'Cocokkan dulu petunjuk/penanda pada soal dengan pilihan yang tersedia.',
+    measure: 'Ingat satuan pengukurannya, dan pastikan satuannya sama sebelum dibandingkan atau dihitung.',
+    negative: 'Ingat aturan bilangan negatif: dua tanda minus jadi plus, tanda yang beda jadi minus.',
+    number: 'Perhatikan nilai tempat dan urutan bilangannya dengan teliti.',
+    pecahan: 'Samakan penyebutnya dulu sebelum menjumlah atau mengurangi pecahan, atau kalikan langsung pembilang & penyebutnya kalau soalnya perkalian.',
+    pembagian: 'Ingat: hasil bagi dikali pembagi harus mendekati bilangan yang dibagi — sisanya adalah kelebihannya.',
+    pengukuran: 'Ubah dulu semua satuan ke satuan yang sama sebelum dihitung atau dibandingkan.',
+    percakapan: 'Perhatikan jenis pertanyaannya (kabar, nama, waktu, dll) untuk menentukan jenis jawaban yang wajar.',
+    perkalian: 'Coba pecah salah satu angkanya jadi bagian yang lebih kecil dan mudah dihitung, lalu jumlahkan hasilnya.',
+    question: 'Baca pertanyaannya pelan-pelan, lalu cari informasi yang berkaitan langsung di dalam soal.',
+    reading: 'Baca pertanyaannya dulu sebelum membaca teksnya, supaya tahu informasi apa yang harus dicari.',
+    spelling: 'Ucapkan kata itu perlahan-lahan, lalu perhatikan tiap hurufnya satu per satu.',
+    vocabulary: 'Cari kata yang artinya paling dekat (atau paling berlawanan) dengan kata yang dimaksud, bukan sekadar yang familiar.'
+  };
+  function buildHintFromExplanation(q){
+    if (!q) return null;
+    var correct = q.correctText || '';
+    var text = (q.explanation || '').trim();
+    var parts = text.split(/(?:\.|!|\?)\s+/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var filtered = parts.filter(function(s){
+      if (correct && s.indexOf(correct) !== -1) return false; // menyebut jawaban akhir
+      if (/\d/.test(s)) return false; // memuat angka spesifik dari soal ini — bukan konsep umum
+      return true;
+    });
+    if (filtered.length){
+      return filtered.map(function(s){ return /[.!?]$/.test(s) ? s : s + '.'; }).join(' ');
+    }
+    return TOPIC_GENERIC_HINTS[q.topic] || 'Coba kerjakan langkah demi langkah dulu, baru cocokkan hasilmu dengan salah satu pilihan yang ada.';
+  }
+
   function renderQuiz(){
     var subjectId = currentSubject;
     var count = getActiveCount(subjectId);
@@ -7824,13 +7871,14 @@
 
     var hintBtn = $('quizHintBtn');
     var hintBox = $('quizHintBox');
+    var hintText = buildHintFromExplanation(currentQuestion);
     hintBox.style.display = 'none';
     hintBox.textContent = '';
     hintBtn.textContent = '💡 Lihat Hint';
-    hintBtn.style.display = currentQuestion.explanation ? 'block' : 'none';
+    hintBtn.style.display = hintText ? 'block' : 'none';
     hintBtn.onclick = function(){
       if (hintBox.style.display === 'none'){
-        hintBox.textContent = currentQuestion.explanation;
+        hintBox.textContent = hintText;
         hintBox.style.display = 'block';
         hintBtn.textContent = '🙈 Sembunyikan Hint';
       } else {

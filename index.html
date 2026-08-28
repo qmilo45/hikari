@@ -8680,12 +8680,12 @@
     return state.toeflClue;
   }
 
-  function awardToeflClueBonus(){
+  function awardToeflClueBonus(points){
     if (!currentUser) return;
     fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_award_bonus_points', {
       method: 'POST',
       headers: supaHeaders(),
-      body: JSON.stringify({ p_username: currentUser.username, p_points: 20, p_label: 'Clue TOEFL selesai' })
+      body: JSON.stringify({ p_username: currentUser.username, p_points: points, p_label: 'Clue TOEFL selesai' })
     }).catch(function(e){ console.error('Award TOEFL clue points failed', e); });
   }
 
@@ -8695,14 +8695,17 @@
     var mainCard = $('toeflClueMainCard');
 
     if (idx >= session.questions.length){
+      var correctCount = session.answers.filter(function(a){return a.correct;}).length;
+      var pointsPerCorrect = 200 / session.questions.length; // total 200 poin kalau benar semua
+      var earnedPoints = Math.round(correctCount * pointsPerCorrect);
       if (!session.completed){
         session.completed = true;
         saveState(state);
-        awardToeflClueBonus();
+        awardToeflClueBonus(earnedPoints);
       }
       if (mainCard) mainCard.style.display = 'none';
       $('toeflClueDoneCard').style.display = 'block';
-      $('toeflClueDoneText').textContent = 'Kamu sudah menyelesaikan ' + session.questions.length + ' soal clue TOEFL hari ini. +20 poin sudah ditambahkan! Balik lagi besok untuk clue baru.';
+      $('toeflClueDoneText').textContent = 'Kamu sudah menyelesaikan ' + session.questions.length + ' soal clue TOEFL hari ini, benar ' + correctCount + '/' + session.questions.length + '. +' + earnedPoints + ' poin sudah ditambahkan! Balik lagi besok untuk clue baru.';
       $('toeflClueRulerFill').style.width = '100%';
       $('toeflClueProgressText').textContent = 'Selesai — ' + session.questions.length + '/' + session.questions.length;
       return;

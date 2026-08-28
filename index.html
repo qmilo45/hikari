@@ -583,6 +583,39 @@
     color:var(--gold-deep);
     font-weight:600;
   }
+  .today-bible{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-top:10px;
+    border-top:1px dashed var(--line);
+    font-size:13px;
+    line-height:1.45;
+    color:var(--ink-soft);
+  }
+  .today-bible-header{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    font-weight:600;
+    color:var(--brick);
+  }
+  .today-bible-icon{ font-size:13px; }
+  .today-bible-text{
+    color:var(--ink);
+    font-weight:500;
+    font-style:italic;
+  }
+  .today-bible-ref{
+    align-self:flex-end;
+    font-size:11.5px;
+    font-weight:600;
+    color:var(--brick);
+  }
   .today-funfact{
     display:flex;
     flex-direction:column;
@@ -1374,6 +1407,14 @@
         <div class="today-riddle-text" id="todayRiddleText">Memuat teka-teki…</div>
         <button type="button" class="today-riddle-toggle" id="todayRiddleToggleBtn">Lihat jawaban</button>
         <div class="today-riddle-answer" id="todayRiddleAnswer" style="display:none;"></div>
+      </div>
+      <div class="today-bible" id="todayBibleBox">
+        <div class="today-bible-header">
+          <span class="today-bible-icon">📖</span>
+          <span>Ayat hari ini</span>
+        </div>
+        <div class="today-bible-text" id="todayBibleText">Memuat ayat…</div>
+        <div class="today-bible-ref" id="todayBibleRef"></div>
       </div>
       <div class="today-funfact" id="todayFunfactBox">
         <div class="today-funfact-header">
@@ -2264,6 +2305,56 @@
     });
   }
 
+  // ---------- Ayat Alkitab (pool di Supabase, via RPC alflesto_random_bible_verse) ----------
+  // Sama seperti teka-teki: berganti tiap kali roda diputar / sesi baru dimulai (dipicu wheelSpinCount berubah).
+  var currentBibleVerse = null;
+  var bibleFetchInFlight = false;
+  var lastBibleSpinCount = -1;
+
+  function fetchRandomBibleVerse(cb){
+    if (bibleFetchInFlight) return;
+    bibleFetchInFlight = true;
+    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_random_bible_verse', {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({})
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(rows){
+      bibleFetchInFlight = false;
+      var row = Array.isArray(rows) ? rows[0] : rows;
+      if (row && row.verse_text) cb(row);
+    })
+    .catch(function(){ bibleFetchInFlight = false; });
+  }
+
+  function renderBibleBox(){
+    var textEl = $('todayBibleText');
+    var refEl = $('todayBibleRef');
+    if (!textEl || !refEl) return;
+    if (!currentBibleVerse){
+      textEl.textContent = 'Memuat ayat…';
+      refEl.textContent = '';
+      return;
+    }
+    textEl.textContent = '"' + currentBibleVerse.verse_text + '"';
+    refEl.textContent = '— ' + currentBibleVerse.reference;
+  }
+
+  function maybeRefreshBibleVerse(){
+    var spinCount = (state && typeof state.wheelSpinCount === 'number') ? state.wheelSpinCount : 0;
+    if (spinCount === lastBibleSpinCount && currentBibleVerse) return;
+    lastBibleSpinCount = spinCount;
+    fetchRandomBibleVerse(function(row){
+      currentBibleVerse = row;
+      renderBibleBox();
+    });
+  }
+
   // ---------- Fun Fact sains & sejarah (pool ~800 item di Supabase, via RPC alflesto_random_funfact) ----------
   // Sama seperti teka-teki: berganti tiap kali roda diputar / sesi baru dimulai (dipicu wheelSpinCount berubah).
   var currentFunfact = null;
@@ -2335,6 +2426,7 @@
     var spinCount = (state && typeof state.wheelSpinCount === 'number') ? state.wheelSpinCount : 0;
     quoteEl.textContent = KIDS_DAILY_QUOTES[getSpinQuoteIndex(spinCount)];
     maybeRefreshRiddle();
+    maybeRefreshBibleVerse();
     maybeRefreshFunfact();
   }
   setInterval(renderTodayWidget, 1000);
@@ -2406,7 +2498,7 @@
   function genNumberSense(){
     var kind = pick(['place-value','digit-value','rounding','order-negative','round-word']);
     if (kind === 'place-value'){
-      var n = ri(1000, 98765);
+      var n = ri(100, 9999);
       var digits = String(n).split('').map(Number);
       var posIdx = ri(0, digits.length - 1);
       var placeNames = ['ones','tens','hundreds','thousands','ten thousands'];
@@ -2422,7 +2514,7 @@
       };
     }
     if (kind === 'digit-value'){
-      var nD = ri(1000, 98765);
+      var nD = ri(100, 9999);
       var digitsD = String(nD).split('').map(Number);
       var candidatePos = [];
       for (var pd=0; pd<digitsD.length; pd++){ if (digitsD[pd] !== 0) candidatePos.push(pd); }
@@ -2441,8 +2533,8 @@
       };
     }
     if (kind === 'rounding'){
-      var n2 = ri(1200, 87650);
-      var toOptions = [10, 100, 1000];
+      var n2 = ri(120, 4990);
+      var toOptions = [10, 100];
       var to = pick(toOptions);
       var correct2 = Math.round(n2 / to) * to;
       var distractors2 = [
@@ -2479,7 +2571,7 @@
       };
     }
     // round-word
-    var attendance = ri(2100, 8940);
+    var attendance = ri(210, 890);
     var correct4 = Math.round(attendance/100)*100;
     var distractors4 = [Math.floor(attendance/100)*100, correct4+100, correct4-100, Math.round(attendance/10)*10];
     var ch4 = buildChoices(correct4, distractors4, fmtNum);
@@ -2497,7 +2589,7 @@
     var name = pick(NAMES), name2 = pick(NAMES);
     var item = pick(ITEMS);
     if (kind === 'add-word'){
-      var a = ri(1240, 6870), b = ri(980, 5430);
+      var a = ri(120, 480), b = ri(90, 350);
       var correct = a + b;
       var distractors = [a - b, correct + 10, correct - 100, a + b + 100, correct - 10];
       var ch = buildChoices(correct, distractors, fmtNum);
@@ -2509,7 +2601,7 @@
       };
     }
     if (kind === 'sub-word'){
-      var total = ri(4200, 9800), used = ri(1200, total - 500);
+      var total = ri(300, 900), used = ri(50, total - 50);
       var correct2 = total - used;
       var distractors2 = [total + used, correct2 + 100, correct2 - 100, used - total];
       var ch2 = buildChoices(correct2, distractors2, fmtNum);
@@ -2521,7 +2613,7 @@
       };
     }
     if (kind === 'multi-step'){
-      var start = ri(3000, 6000), gained = ri(800, 2200), lost = ri(400, 1500);
+      var start = ri(200, 500), gained = ri(50, 150), lost = ri(20, 100);
       var correct3 = start + gained - lost;
       var distractors3 = [start + gained + lost, start - gained + lost, correct3 + 100, correct3 - 100];
       var ch3 = buildChoices(correct3, distractors3, fmtNum);
@@ -2533,7 +2625,7 @@
       };
     }
     if (kind === 'add-three'){
-      var p1 = ri(800, 3200), p2 = ri(600, 2800), p3 = ri(400, 2400);
+      var p1 = ri(50, 200), p2 = ri(40, 180), p3 = ri(30, 150);
       var correct5 = p1 + p2 + p3;
       var distractors5 = [p1+p2, correct5+100, correct5-100, p1+p3];
       var ch5 = buildChoices(correct5, distractors5, fmtNum);
@@ -2545,8 +2637,8 @@
       };
     }
     // missing-number
-    var target = ri(500, 4500);
-    var known = ri(150, target - 50);
+    var target = ri(50, 300);
+    var known = ri(10, target - 10);
     var correct4 = target - known;
     var distractors4 = [target + known, correct4 + 10, correct4 - 10, known - target];
     var ch4 = buildChoices(correct4, distractors4, fmtNum);
@@ -2565,7 +2657,7 @@
     var item = pick(ITEMS);
     var container = pick(CONTAINERS);
     if (kind === 'mul-word'){
-      var perBox = ri(12, 48), boxes = ri(6, 24);
+      var perBox = ri(3, 12), boxes = ri(2, 10);
       var correct = perBox * boxes;
       var distractors = [perBox + boxes, correct + perBox, correct - boxes, perBox * (boxes+1)];
       var ch = buildChoices(correct, distractors, fmtNum);
@@ -2577,8 +2669,8 @@
       };
     }
     if (kind === 'div-word'){
-      var groups = ri(4, 12);
-      var each = ri(15, 60);
+      var groups = ri(2, 10);
+      var each = ri(2, 12);
       var total = groups * each;
       var correct2 = each;
       var distractors2 = [each+groups, each-groups, total, Math.round(total/(groups+1))];
@@ -2591,8 +2683,8 @@
       };
     }
     if (kind === 'div-remainder'){
-      var each2 = ri(6, 9);
-      var groups2 = ri(20, 45);
+      var each2 = ri(3, 6);
+      var groups2 = ri(4, 12);
       var extra = ri(1, each2-1);
       var total2 = groups2 * each2 + extra;
       var correct3 = groups2;
@@ -2606,7 +2698,7 @@
       };
     }
     if (kind === 'factors'){
-      var n = pick([24,36,40,48,54,60,64,72,80,90]);
+      var n = pick([12,16,18,20,24,30,36]);
       var factors = [];
       for (var i=1;i<=n;i++){ if (n % i === 0) factors.push(i); }
       var correct4 = pick(factors);
@@ -2622,8 +2714,8 @@
       };
     }
     if (kind === 'multiples'){
-      var base = ri(6, 12);
-      var correct5 = base * ri(4, 9);
+      var base = ri(2, 10);
+      var correct5 = base * ri(2, 8);
       var wrongs = [];
       while (wrongs.length < 3){
         var cand = correct5 + pick([-3,-2,-1,1,2,3]);
@@ -2638,7 +2730,7 @@
       };
     }
     if (kind === 'square-numbers'){
-      var baseSq = ri(2, 12);
+      var baseSq = ri(2, 10);
       var correctSq = baseSq * baseSq;
       var distractorsSq = [baseSq*2, correctSq+baseSq, correctSq-baseSq, (baseSq+1)*(baseSq+1)];
       var chSq = buildChoices(correctSq, distractorsSq, fmtNum);
@@ -2650,7 +2742,7 @@
       };
     }
     // missing-factor
-    var f1 = ri(4, 9), result = f1 * ri(6, 12);
+    var f1 = ri(2, 9), result = f1 * ri(2, 10);
     var correct6 = result / f1;
     var distractors6 = [correct6+1, correct6-1, f1, result];
     var ch6 = buildChoices(correct6, distractors6, fmtNum);
@@ -2740,7 +2832,7 @@
     }
     if (kind === 'percent-of'){
       var pct = pick([10,20,25,50,75]);
-      var whole = pick([40,60,80,120,160,200,240,320,400]);
+      var whole = pick([20,40,60,80,100,120]);
       var correct4 = (pct/100)*whole;
       var distractors4 = [correct4+10, correct4-10, whole-correct4, correct4*2];
       var ch4 = buildChoices(correct4, distractors4, fmtNum);
@@ -2754,7 +2846,7 @@
     // fraction-of
     var frNum = pick([1,1,1,2,3]), frDen = pick([2,3,4,5]);
     if (frNum >= frDen) frNum = 1;
-    var whole2 = frDen * ri(4, 20);
+    var whole2 = frDen * ri(2, 10);
     var correct5 = (whole2 / frDen) * frNum;
     var distractors5 = [correct5 + frDen, correct5 - frDen, whole2 - correct5, correct5 + frNum];
     var ch5 = buildChoices(correct5, distractors5, fmtNum);
@@ -2770,8 +2862,8 @@
   function genPatterns(){
     var kind = pick(['sequence-next','sequence-rule','number-sentence','missing-middle']);
     if (kind === 'sequence-next'){
-      var start = ri(2, 20);
-      var step = pick([2,3,4,5,6,7,8,9,10,-2,-3,-4,-5]);
+      var start = ri(1, 10);
+      var step = pick([1,2,3,4,5,-1,-2,-3]);
       var seq = [start];
       for (var i=1;i<5;i++){ seq.push(seq[i-1]+step); }
       var correct = seq[4] + step;
@@ -2786,7 +2878,7 @@
     }
     if (kind === 'sequence-rule'){
       var start2 = ri(1,10);
-      var step2 = ri(2,9);
+      var step2 = ri(2,5);
       var seq2 = [start2];
       for (var j=1;j<4;j++){ seq2.push(seq2[j-1]+step2); }
       var correctRule = "add " + step2 + " each time";
@@ -2800,8 +2892,8 @@
       };
     }
     if (kind === 'missing-middle'){
-      var startM = ri(2, 15);
-      var stepM = ri(2, 9);
+      var startM = ri(1, 10);
+      var stepM = ri(2, 5);
       var seqM = [startM];
       for (var k=1;k<5;k++){ seqM.push(seqM[k-1]+stepM); }
       var hideIdx = pick([1,2,3]);
@@ -2929,7 +3021,7 @@
   function genMeasurement(){
     var kind = pick(['perimeter','area','unit-convert','time-elapsed','money-word','capacity-word']);
     if (kind === 'perimeter'){
-      var l = ri(6,24), w = ri(3,18);
+      var l = ri(4,12), w = ri(2,8);
       var correct = 2*(l+w);
       var distractors = [l*w, l+w, correct+2, correct-2];
       var ch = buildChoices(correct, distractors, fmtNum);
@@ -2941,7 +3033,7 @@
       };
     }
     if (kind === 'area'){
-      var l2 = ri(4,16), w2 = ri(3,14);
+      var l2 = ri(3,10), w2 = ri(2,8);
       var correct2 = l2*w2;
       var distractors2 = [2*(l2+w2), correct2+l2, correct2-w2, l2+w2];
       var ch2 = buildChoices(correct2, distractors2, fmtNum);
@@ -3035,7 +3127,7 @@
     var kind = pick(['table-total','table-difference','table-max','table-min']);
     var days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
     var subject = pick(['visitors to a museum','books borrowed','cups of juice sold','bicycles counted','birds spotted']);
-    var vals = days.map(function(){ return ri(8, 65); });
+    var vals = days.map(function(){ return ri(5, 30); });
     if (kind === 'table-total'){
       var correct = vals.reduce(function(a,b){return a+b;},0);
       var distractors = [correct+ri(3,8), correct-ri(3,8), correct+10, correct-10];
@@ -6175,7 +6267,7 @@
       tagline: 'Cambridge Primary English, Stage 4',
       cardMeta: 'Grammar, Vocabulary, Spelling & Punctuation, Reading',
       pool: ENGLISH_WEIGHTED_POOL,
-      dailyCount: 60,
+      dailyCount: 30,
       wheelLabel: 'B. Inggris',
       topicDisplayNames: { grammar:'Grammar', vocabulary:'Vocabulary', spelling:'Spelling & Punctuation', reading:'Reading Comprehension' }
     },
@@ -6231,7 +6323,7 @@
   var STORE_KEY = 'alsfesto_v1';
   function getDailyCount(subjectId){
     var mod = MODULES[subjectId];
-    return (mod && mod.dailyCount) ? mod.dailyCount : 50;
+    return (mod && mod.dailyCount) ? mod.dailyCount : 30;
   }
 
   function defaultSubjectsState(){

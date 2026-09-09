@@ -511,8 +511,8 @@
   }
   .wheel-outer{
     position:relative;
-    width:280px;
-    height:280px;
+    width:320px;
+    height:320px;
     max-width:100%;
     margin-bottom:18px;
   }
@@ -560,7 +560,7 @@
     gap:2px;
     color:#fff;
     text-shadow:0 1px 3px rgba(0,0,0,0.25);
-    width:56px;
+    width:46px;
     text-align:center;
   }
   .wheel-label-icon{
@@ -569,13 +569,15 @@
     font-size:17px;
     line-height:1;
   }
+  .wheel-label-icon.small{ font-size:14px; }
   .wheel-label-name{
     font-size:9.5px;
     font-weight:700;
     white-space:normal;
     line-height:1.12;
   }
-  .wheel-label-name.small{ font-size:8.5px; }
+  .wheel-label-name.small{ font-size:8px; line-height:1.08; }
+  .wheel-label-name.xsmall{ font-size:6.8px; line-height:1.05; }
   .spin-btn{
     width:auto;
     padding:13px 36px;
@@ -648,7 +650,27 @@
     letter-spacing:0.04em;
     color:#8A6416;
     margin-bottom:4px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
   }
+  .funfact-speaker-btn{
+    flex-shrink:0;
+    width:26px;
+    height:26px;
+    border-radius:50%;
+    border:1px solid #F0D9A6;
+    background:#FFF8EA;
+    font-size:12px;
+    line-height:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+  }
+  .funfact-speaker-btn:active{ transform:scale(0.92); }
+  .funfact-speaker-btn.speaking{ background:#FFE7A6; border-color:#E0B95C; }
   .funfact-text{
     font-size:13.5px;
     line-height:1.45;
@@ -1335,20 +1357,20 @@
   <!-- ===================== HUB VIEW (subject selection) ===================== -->
   <div id="view-hub">
     <div class="funfact-card" id="funfactCard">
-      <div class="funfact-label">✨ Tahukah kamu?</div>
+      <div class="funfact-label"><span>✨ Tahukah kamu?</span><button class="funfact-speaker-btn" id="funfactSpeakerBtn" title="Dengarkan" aria-label="Dengarkan">🔊</button></div>
       <p class="funfact-text" id="funfactText"></p>
     </div>
 
     <div class="funfact-card" id="bibleFunfactCard">
-      <div class="funfact-label">📖 Fakta Alkitab</div>
+      <div class="funfact-label"><span>📖 Fakta Alkitab</span><button class="funfact-speaker-btn" id="bibleFunfactSpeakerBtn" title="Dengarkan" aria-label="Dengarkan">🔊</button></div>
       <p class="funfact-text" id="bibleFunfactText"></p>
     </div>
     <div class="funfact-card" id="anatomyFunfactCard">
-      <div class="funfact-label">🫀 Fakta Tubuh Manusia</div>
+      <div class="funfact-label"><span>🫀 Fakta Tubuh Manusia</span><button class="funfact-speaker-btn" id="anatomyFunfactSpeakerBtn" title="Dengarkan" aria-label="Dengarkan">🔊</button></div>
       <p class="funfact-text" id="anatomyFunfactText"></p>
     </div>
     <div class="funfact-card" id="sejarahFunfactCard">
-      <div class="funfact-label">🏛️ Fakta Sejarah</div>
+      <div class="funfact-label"><span>🏛️ Fakta Sejarah</span><button class="funfact-speaker-btn" id="sejarahFunfactSpeakerBtn" title="Dengarkan" aria-label="Dengarkan">🔊</button></div>
       <p class="funfact-text" id="sejarahFunfactText"></p>
     </div>
 
@@ -4931,9 +4953,23 @@
       dailyCount: 25,
       speechLang: 'zh-CN',
       topicDisplayNames: { perkenalan:'Perkenalan', angka:'Angka', waktu:'Waktu', keluarga:'Keluarga', makanan:'Makanan & Minuman', warna:'Warna', tempat:'Tempat', perasaan:'Perasaan', tubuh:'Anggota Tubuh', kegiatan:'Kegiatan Sehari-hari', sifat:'Kata Sifat', hari:'Hari', hewan:'Hewan', benda:'Benda Sehari-hari' }
+    },
+    mandarinPercakapan: {
+      id: 'mandarinPercakapan',
+      name: 'Mandarin Percakapan',
+      wheelLabel: 'Percakapan',
+      icon: '💬',
+      color: '#B0563E',
+      tagline: 'Latihan bicara & pelafalan: frasa percakapan sehari-hari',
+      cardMeta: 'Salam, perasaan, keluarga, makanan, belanja, arah, sekolah, hobi, cuaca, aktivitas harian, sopan santun, pamitan',
+      remote: true,
+      remoteRpc: 'alflesto_mandarin_percakapan_daily_set',
+      dailyCount: 25,
+      speechLang: 'zh-CN',
+      topicDisplayNames: { salam:'Salam & Perkenalan', perasaan:'Tanya Kabar & Perasaan', sopan_santun:'Sopan Santun', pamitan:'Pamitan', angka_waktu:'Angka & Waktu', hari_bulan:'Hari & Bulan', keluarga:'Keluarga', makanan:'Makanan & Memesan', belanja:'Belanja', arah_lokasi:'Arah & Lokasi', sekolah:'Sekolah', hobi:'Hobi', cuaca:'Cuaca', aktivitas_harian:'Aktivitas Harian' }
     }
   };
-  var MODULE_ORDER = ['maths','toefl','matematika','matematikaKhusus','matematikaPecahan','english','mandarin','mandarinHanzi'];
+  var MODULE_ORDER = ['maths','toefl','matematika','matematikaKhusus','matematikaPecahan','english','mandarin','mandarinHanzi','mandarinPercakapan'];
 
   // 500 kid-friendly fun facts (Indonesian), shown above the spin wheel and
   // rotated each time a subject/mapel session is completed.
@@ -5035,9 +5071,9 @@
   // When intervals overlap on the same spin (e.g. spin #300 hits all three),
   // all matching bonus wedges appear together on that spin.
   var WHEEL_BONUS_OPTIONS = [
-    { id:'bonus5000', label:'Bonus 5000', points:5000, interval:300, color:'#D4AF37', icon:'★' },
-    { id:'bonus50',   label:'Bonus 50',   points:50,   interval:15,  color:'#8E5CC2', icon:'★' },
-    { id:'bonus20',   label:'Bonus 20',   points:20,   interval:10,  color:'#4C6FE0', icon:'★' }
+    { id:'bonus5000', label:'+5000',   points:5000, interval:300, color:'#D4AF37', icon:'★' },
+    { id:'bonus50',   label:'+50',     points:50,   interval:15,  color:'#8E5CC2', icon:'★' },
+    { id:'bonus20',   label:'+20',     points:20,   interval:10,  color:'#4C6FE0', icon:'★' }
   ];
 
   /* =========================================================
@@ -5249,7 +5285,7 @@
   }
 
   /* ---------- Spin the wheel ---------- */
-  var WHEEL_RADIUS = 92; // px, distance of label from dial center
+  var WHEEL_RADIUS = 108; // px, distance of label from dial center
   var wheelRotation = 0;
   var wheelSpinning = false;
   var wheelIsBonusRound = false; // does THIS spin have a live chance at any bonus wedge?
@@ -5293,6 +5329,8 @@
     });
     dial.style.background = 'conic-gradient(' + stops.join(', ') + ')';
     dial.innerHTML = '<div class="wheel-hub">★</div>';
+    // Scale label text down further as more wedges are packed onto the wheel.
+    var sizeClass = n > 8 ? 'xsmall' : (n > 4 ? 'small' : '');
     wheelSegments.forEach(function(s, i){
       var center = i * seg + seg / 2;
       var label = document.createElement('div');
@@ -5302,8 +5340,8 @@
       inner.className = 'wheel-label-inner';
       inner.style.transform = 'translate(-50%, -' + WHEEL_RADIUS + 'px)';
       inner.innerHTML =
-        '<span class="wheel-label-icon">' + s.icon + '</span>' +
-        '<span class="wheel-label-name' + (n > 4 ? ' small' : '') + '">' + s.name + '</span>';
+        '<span class="wheel-label-icon' + (sizeClass ? ' small' : '') + '">' + s.icon + '</span>' +
+        '<span class="wheel-label-name' + (sizeClass ? ' ' + sizeClass : '') + '">' + s.name + '</span>';
       label.appendChild(inner);
       dial.appendChild(label);
     });
@@ -5505,6 +5543,7 @@
     pullAllSessionsAndMerge();
     ensureRemoteDailySet('mandarin'); // prefetch so remote modules are usually ready by the time the wheel picks one
     ensureRemoteDailySet('mandarinHanzi');
+    ensureRemoteDailySet('mandarinPercakapan');
   }
 
   function logout(){
@@ -6626,6 +6665,7 @@
 
   function handleAnswer(selectedText, btnEl){
     if (locked) return;
+    if (!confirm('Kamu yakin dengan jawaban ini?')) return;
     locked = true;
     var session = getOrCreateTodaySession(currentSubject);
     var isCorrect = selectedText === currentQuestion.correctText;
@@ -7547,6 +7587,23 @@
 
   $('tipsAddBtn').addEventListener('click', addTip);
   $('tipsBackBtn').addEventListener('click', function(){ renderHub(); });
+
+  /* ---- Fun-fact card speaker buttons: read the currently shown fact aloud
+     (Indonesian voice). Bound once; reads the live text at click-time since
+     the card content rotates each session. ---- */
+  function bindFunfactSpeaker(btnId, textId){
+    var btn = $(btnId);
+    if (!btn) return;
+    btn.addEventListener('click', function(){
+      var el = $(textId);
+      var txt = el && el.textContent;
+      if (txt) speakText(txt, 'id-ID', btn);
+    });
+  }
+  bindFunfactSpeaker('funfactSpeakerBtn', 'funfactText');
+  bindFunfactSpeaker('bibleFunfactSpeakerBtn', 'bibleFunfactText');
+  bindFunfactSpeaker('anatomyFunfactSpeakerBtn', 'anatomyFunfactText');
+  bindFunfactSpeaker('sejarahFunfactSpeakerBtn', 'sejarahFunfactText');
 
   /* =========================================================
      4. EVENTS

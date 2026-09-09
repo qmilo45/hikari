@@ -1290,6 +1290,76 @@
     -webkit-user-select: text;
     user-select: text; /* biar tetap bisa isi jawaban di form */
   }
+
+  /* ---------- Coret-coretan / scratchpad ---------- */
+  .scratchpad-wrap{
+    width:100%;
+    height:calc(100vh - 145px);
+    min-height:420px;
+    display:flex;
+    flex-direction:column;
+  }
+  .scratchpad-toolbar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+  }
+  .scratchpad-tool{
+    background:var(--paper-raised);
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .scratchpad-tool:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .scratchpad-tool:disabled{ opacity:.45; cursor:not-allowed; }
+
+  .scratchpad-colors{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+  .scratchpad-color-label{font-size:12px;color:var(--ink-soft);font-weight:600;margin-right:2px;}
+  .scratchpad-color{width:25px;height:25px;border-radius:50%;border:2px solid var(--paper-raised);background:var(--pen-color);box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0;}
+  .scratchpad-color.active{box-shadow:0 0 0 2px var(--paper-raised),0 0 0 4px var(--ink);transform:scale(1.06);}
+  .scratchpad-color:hover{transform:scale(1.1);}
+  .scratchpad-size{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-left:auto;
+  }
+  .scratchpad-size input{ width:90px; accent-color:var(--gold); }
+  .scratchpad-board{
+    position:relative;
+    flex:1;
+    min-height:0;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 2px 10px rgba(0,0,0,.04);
+  }
+  #scratchpadCanvas{
+    display:block;
+    width:100%;
+    height:100%;
+    touch-action:none;
+    cursor:crosshair;
+    background:#fff;
+  }
+  .scratchpad-hint{
+    margin:8px 2px 0;
+    font-size:11.5px;
+    color:var(--ink-soft);
+  }
+  @media (max-width:700px){
+    .scratchpad-wrap{ height:calc(100vh - 175px); min-height:360px; }
+    .scratchpad-size{ margin-left:0; width:100%; }
+  }
 </style>
 <script>
   // Deterrent: klik kanan, copy, shortcut umum, dan devtools
@@ -1342,6 +1412,7 @@
       <button class="topbar-btn" id="topbarLibraryBtn">Library</button>
       <button class="topbar-btn" id="topbarTipsBtn">Trik &amp; Rumus</button>
       <button class="topbar-btn" id="topbarRiwayatBtn">Riwayat</button>
+      <button class="topbar-btn" id="topbarScratchpadBtn">Coret²an</button>
       <button class="topbar-btn" id="topbarPointsBtn">Point Reward</button>
       <button class="topbar-btn" id="topbarAdminBtn" style="display:none;">Kelola User</button>
       <button class="topbar-btn" id="topbarLogoutBtn">Keluar</button>
@@ -1540,6 +1611,36 @@
       <input type="date" id="riwayatDateFilter">
     </div>
     <div id="riwayatList"></div>
+  </div>
+
+  <!-- ===================== CORET-CORETAN VIEW ===================== -->
+  <div id="view-scratchpad" class="hidden">
+    <button class="btn-ghost" id="scratchpadBackBtn" style="width:auto; padding:8px 14px; margin-bottom:12px; border-radius:8px; font-size:13px; font-weight:600;">&larr; All Subjects</button>
+    <h1 style="font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px;">Coret²an</h1>
+    <p class="subtitle">Halaman kosong untuk menghitung, mencatat, atau mencoret-coret saat mengerjakan soal.</p>
+    <div class="scratchpad-wrap">
+      <div class="scratchpad-toolbar">
+        <button class="scratchpad-tool" id="scratchpadUndoBtn" disabled>↶ Undo</button>
+        <button class="scratchpad-tool" id="scratchpadClearBtn">🗑 Clear</button>
+        <div class="scratchpad-colors" aria-label="Warna pena">
+          <span class="scratchpad-color-label">Warna</span>
+          <button class="scratchpad-color active" data-color="#222222" style="--pen-color:#222222" aria-label="Hitam" title="Hitam"></button>
+          <button class="scratchpad-color" data-color="#e53935" style="--pen-color:#e53935" aria-label="Merah" title="Merah"></button>
+          <button class="scratchpad-color" data-color="#fb8c00" style="--pen-color:#fb8c00" aria-label="Oranye" title="Oranye"></button>
+          <button class="scratchpad-color" data-color="#fbc02d" style="--pen-color:#fbc02d" aria-label="Kuning" title="Kuning"></button>
+          <button class="scratchpad-color" data-color="#43a047" style="--pen-color:#43a047" aria-label="Hijau" title="Hijau"></button>
+          <button class="scratchpad-color" data-color="#1e88e5" style="--pen-color:#1e88e5" aria-label="Biru" title="Biru"></button>
+          <button class="scratchpad-color" data-color="#8e24aa" style="--pen-color:#8e24aa" aria-label="Ungu" title="Ungu"></button>
+          <button class="scratchpad-color" data-color="#ec407a" style="--pen-color:#ec407a" aria-label="Pink" title="Pink"></button>
+          <button class="scratchpad-color" data-color="#795548" style="--pen-color:#795548" aria-label="Cokelat" title="Cokelat"></button>
+        </div>
+        <label class="scratchpad-size">Ukuran pena <input id="scratchpadSize" type="range" min="1" max="12" value="3"><span id="scratchpadSizeValue">3</span>px</label>
+      </div>
+      <div class="scratchpad-board" id="scratchpadBoard">
+        <canvas id="scratchpadCanvas" aria-label="Halaman coret-coretan"></canvas>
+      </div>
+      <div class="scratchpad-hint">✏️ Coret langsung dengan jari, stylus, mouse, atau touchpad. Coretan tetap ada selama halaman/aplikasi ini belum dimuat ulang.</div>
+    </div>
   </div>
 
   <!-- ===================== POINT REWARD VIEW ===================== -->
@@ -4619,26 +4720,31 @@
   function engBasePresent(subj, verb){ return subj.sg3 ? verb.s : verb.base; }
   var ENG_TENSE_TYPES = [
     {
+      label:'Simple Present',
       markers:['every day','usually','often','most mornings'],
       correctForm: function(subj, verb){ return engBasePresent(subj, verb); },
       distractorForms: function(subj, verb){ return [verb.past, 'will ' + verb.base, subj.be.present + ' ' + verb.ing]; }
     },
     {
+      label:'Simple Past',
       markers:['yesterday','last week','last night','a few days ago'],
       correctForm: function(subj, verb){ return verb.past; },
       distractorForms: function(subj, verb){ return [engBasePresent(subj, verb), 'will ' + verb.base, subj.be.present + ' ' + verb.ing]; }
     },
     {
+      label:'Simple Future',
       markers:['tomorrow','next week','next weekend','soon'],
       correctForm: function(subj, verb){ return 'will ' + verb.base; },
       distractorForms: function(subj, verb){ return [engBasePresent(subj, verb), verb.past, subj.be.present + ' ' + verb.ing]; }
     },
     {
+      label:'Present Continuous',
       markers:['right now','at the moment','currently'],
       correctForm: function(subj, verb){ return subj.be.present + ' ' + verb.ing; },
       distractorForms: function(subj, verb){ return [engBasePresent(subj, verb), verb.past, 'will ' + verb.base]; }
     },
     {
+      label:'Past Continuous',
       markers:["at six o'clock yesterday",'when it started to rain','all afternoon yesterday'],
       correctForm: function(subj, verb){ return subj.be.past + ' ' + verb.ing; },
       distractorForms: function(subj, verb){ return [engBasePresent(subj, verb), verb.past, 'will ' + verb.base]; }
@@ -4655,7 +4761,7 @@
     var options = shuffle([correct].concat(distractors));
     var sentence = subj.text + ' ___ ' + marker + '.';
     return {
-      topic:'grammar', topicLabel:'Grammar',
+      topic:'grammar', topicLabel:'Tenses · ' + tenseType.label,
       prompt: 'Choose the correct verb form to complete the sentence: "' + sentence + '"',
       correctText: correct, options: options,
       explanation: 'With "' + marker + '", the correct form is "' + correct + '".',
@@ -5245,6 +5351,7 @@
     tips: $('view-tips'),
     riwayat: $('view-riwayat'),
     points: $('view-points'),
+    scratchpad: $('view-scratchpad'),
     admin: $('view-admin')
   };
   function showView(name){
@@ -5584,10 +5691,146 @@
   $('topbarLogoutBtn').addEventListener('click', logout);
   $('topbarRiwayatBtn').addEventListener('click', function(){ renderRiwayat(); });
   $('topbarPointsBtn').addEventListener('click', function(){ renderPoints(); });
+  $('topbarScratchpadBtn').addEventListener('click', function(){ showScratchpad(); });
+  $('scratchpadBackBtn').addEventListener('click', function(){ renderHub(); });
   $('topbarAdminBtn').addEventListener('click', function(){ if (currentUser && currentUser.role === 'superadmin') renderAdmin(); });
   $('riwayatBackBtn').addEventListener('click', function(){ renderHub(); });
   $('pointsBackBtn').addEventListener('click', function(){ renderHub(); });
   $('adminBackBtn').addEventListener('click', function(){ renderHub(); });
+
+  /* =========================================================
+     COREt-CORETAN — in-app scratchpad
+  ========================================================= */
+  var scratchpadCanvas = $('scratchpadCanvas');
+  var scratchpadBoard = $('scratchpadBoard');
+  var scratchpadCtx = scratchpadCanvas.getContext('2d');
+  var scratchpadDrawing = false;
+  var scratchpadLastX = 0;
+  var scratchpadLastY = 0;
+  var scratchpadHistory = [];
+  var scratchpadHistoryIndex = -1;
+  var scratchpadInitialized = false;
+
+  var scratchpadColor = '#222222';
+
+  function scratchpadSnapshot(){
+    try { return scratchpadCanvas.toDataURL('image/png'); } catch(e){ return null; }
+  }
+  function scratchpadPushHistory(){
+    var snap = scratchpadSnapshot();
+    if (!snap) return;
+    scratchpadHistory = scratchpadHistory.slice(0, scratchpadHistoryIndex + 1);
+    scratchpadHistory.push(snap);
+    if (scratchpadHistory.length > 30) scratchpadHistory.shift();
+    scratchpadHistoryIndex = scratchpadHistory.length - 1;
+    $('scratchpadUndoBtn').disabled = scratchpadHistoryIndex <= 0;
+  }
+  function scratchpadRestore(dataUrl){
+    if (!dataUrl) return;
+    var img = new Image();
+    img.onload = function(){
+      scratchpadCtx.clearRect(0,0,scratchpadCanvas.width,scratchpadCanvas.height);
+      scratchpadCtx.drawImage(img,0,0,scratchpadCanvas.width,scratchpadCanvas.height);
+    };
+    img.src = dataUrl;
+  }
+  function scratchpadResize(preserve){
+    var old = preserve ? scratchpadSnapshot() : null;
+    var rect = scratchpadBoard.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    var w = Math.max(1, Math.floor(rect.width * dpr));
+    var h = Math.max(1, Math.floor(rect.height * dpr));
+    scratchpadCanvas.width = w;
+    scratchpadCanvas.height = h;
+    scratchpadCanvas.style.width = rect.width + 'px';
+    scratchpadCanvas.style.height = rect.height + 'px';
+    scratchpadCtx.setTransform(1,0,0,1,0,0);
+    scratchpadCtx.fillStyle = '#fff';
+    scratchpadCtx.fillRect(0,0,w,h);
+    if (old) scratchpadRestore(old);
+    scratchpadCtx.lineCap = 'round';
+    scratchpadCtx.lineJoin = 'round';
+    scratchpadCtx.strokeStyle = scratchpadColor;
+  }
+  function showScratchpad(){
+    showView('scratchpad');
+    if (!scratchpadInitialized){
+      scratchpadInitialized = true;
+      requestAnimationFrame(function(){
+        scratchpadResize(false);
+        scratchpadPushHistory();
+      });
+    } else {
+      requestAnimationFrame(function(){ scratchpadResize(true); });
+    }
+  }
+  function scratchpadPoint(e){
+    var rect = scratchpadCanvas.getBoundingClientRect();
+    return {
+      x:(e.clientX - rect.left) * (scratchpadCanvas.width / rect.width),
+      y:(e.clientY - rect.top) * (scratchpadCanvas.height / rect.height)
+    };
+  }
+  scratchpadCanvas.addEventListener('pointerdown', function(e){
+    e.preventDefault();
+    scratchpadDrawing = true;
+    scratchpadCanvas.setPointerCapture(e.pointerId);
+    var p = scratchpadPoint(e);
+    scratchpadLastX = p.x; scratchpadLastY = p.y;
+    var size = Number($('scratchpadSize').value || 3);
+    scratchpadCtx.beginPath();
+    scratchpadCtx.arc(p.x,p.y,size/2,0,Math.PI*2);
+    scratchpadCtx.fillStyle = scratchpadColor;
+    scratchpadCtx.fill();
+  });
+  scratchpadCanvas.addEventListener('pointermove', function(e){
+    if (!scratchpadDrawing) return;
+    e.preventDefault();
+    var p = scratchpadPoint(e);
+    var size = Number($('scratchpadSize').value || 3);
+    scratchpadCtx.beginPath();
+    scratchpadCtx.moveTo(scratchpadLastX,scratchpadLastY);
+    scratchpadCtx.lineTo(p.x,p.y);
+    scratchpadCtx.lineWidth = size * (window.devicePixelRatio || 1);
+    scratchpadCtx.strokeStyle = scratchpadColor;
+    scratchpadCtx.stroke();
+    scratchpadLastX = p.x; scratchpadLastY = p.y;
+  });
+  function scratchpadEnd(e){
+    if (!scratchpadDrawing) return;
+    scratchpadDrawing = false;
+    try { scratchpadCanvas.releasePointerCapture(e.pointerId); } catch(err){}
+    scratchpadPushHistory();
+  }
+  scratchpadCanvas.addEventListener('pointerup', scratchpadEnd);
+  scratchpadCanvas.addEventListener('pointercancel', scratchpadEnd);
+  $('scratchpadUndoBtn').addEventListener('click', function(){
+    if (scratchpadHistoryIndex <= 0) return;
+    scratchpadHistoryIndex--;
+    scratchpadRestore(scratchpadHistory[scratchpadHistoryIndex]);
+    $('scratchpadUndoBtn').disabled = scratchpadHistoryIndex <= 0;
+  });
+  $('scratchpadClearBtn').addEventListener('click', function(){
+    if (!confirm('Hapus semua coretan di halaman ini?')) return;
+    scratchpadCtx.setTransform(1,0,0,1,0,0);
+    scratchpadCtx.fillStyle = '#fff';
+    scratchpadCtx.fillRect(0,0,scratchpadCanvas.width,scratchpadCanvas.height);
+    scratchpadPushHistory();
+  });
+  $('scratchpadSize').addEventListener('input', function(){
+    $('scratchpadSizeValue').textContent = this.value;
+  });
+  document.querySelectorAll('.scratchpad-color').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      scratchpadColor = this.getAttribute('data-color') || '#222222';
+      document.querySelectorAll('.scratchpad-color').forEach(function(b){ b.classList.remove('active'); });
+      this.classList.add('active');
+      if (scratchpadCtx) scratchpadCtx.strokeStyle = scratchpadColor;
+    });
+  });
+  window.addEventListener('resize', function(){
+    if (views.scratchpad && !views.scratchpad.classList.contains('hidden')) scratchpadResize(true);
+  });
 
   /* =========================================================
      2c. RIWAYAT — activity history (per user, or all users for superadmin)
@@ -6544,6 +6787,8 @@
 
   var currentQuestion = null;
   var locked = false;
+  var answerAttempts = 0;
+  var answeredWrongOptions = {};
 
   /* ---- Text-to-speech pronunciation helper (English/TOEFL/Mandarin) ----
      Uses the browser's built-in SpeechSynthesis API — no external
@@ -6588,6 +6833,8 @@
     }
     currentQuestion = session.questions[idx];
     locked = false;
+    answerAttempts = 0;
+    answeredWrongOptions = {};
 
     var pct = Math.round((idx / getDailyCount(subjectId)) * 100);
     $('quizRulerFill').style.width = pct + '%';
@@ -6706,48 +6953,64 @@
 
   function handleAnswer(selectedText, btnEl){
     if (locked) return;
+    if (answeredWrongOptions[selectedText]) return;
     if (!confirm('Kamu yakin dengan jawaban ini?')) return;
-    locked = true;
+
+    answerAttempts++;
     var session = getOrCreateTodaySession(currentSubject);
     var isCorrect = selectedText === currentQuestion.correctText;
     if (isCorrect) playCorrectSound(); else playWrongSound();
 
     var choiceButtons = $('quizChoices').querySelectorAll('.choice');
-    choiceButtons.forEach(function(b){
-      b.classList.add('locked');
-      var txt = b.textContent.trim();
-      var matches = txt.slice(1) === currentQuestion.correctText || txt === currentQuestion.correctText;
-    });
-    choiceButtons.forEach(function(b){
-      var letter = b.querySelector('.choice-letter').textContent;
-      var label = b.querySelector('span:last-child').textContent;
-      if (label === currentQuestion.correctText){
-        b.classList.add('correct');
-      } else if (b === btnEl){
-        b.classList.add('incorrect');
-      } else {
-        b.classList.add('dim');
-      }
-    });
+    if (isCorrect || answerAttempts >= 2){
+      // Final attempt: lock the question and reveal the correct answer.
+      locked = true;
+      choiceButtons.forEach(function(b){
+        b.classList.add('locked');
+        var labelEl = b.querySelector('span:last-child');
+        var label = labelEl ? labelEl.textContent : '';
+        if (label === currentQuestion.correctText){
+          b.classList.add('correct');
+        } else if (b === btnEl){
+          b.classList.add('incorrect');
+        } else {
+          b.classList.add('dim');
+        }
+      });
 
-    var fb = $('quizFeedback');
-    fb.className = 'feedback show ' + (isCorrect ? 'is-correct' : 'is-incorrect');
-    $('quizFeedbackHead').textContent = isCorrect ? 'Correct!' : 'Not quite — the correct answer is ' + currentQuestion.correctText;
-    $('quizFeedbackBody').textContent = currentQuestion.explanation;
+      var fb = $('quizFeedback');
+      fb.className = 'feedback show ' + (isCorrect ? 'is-correct' : 'is-incorrect');
+      $('quizFeedbackHead').textContent = isCorrect
+        ? 'Correct!'
+        : 'Kesempatan kedua habis — jawaban yang benar adalah ' + currentQuestion.correctText;
+      $('quizFeedbackBody').textContent = currentQuestion.explanation;
+      $('quizNextWrap').className = 'next-wrap show';
 
-    $('quizNextWrap').className = 'next-wrap show';
+      session.answers.push({
+        prompt: currentQuestion.prompt,
+        topic: currentQuestion.topic,
+        selected: selectedText,
+        correctText: currentQuestion.correctText,
+        correct: isCorrect,
+        attempts: answerAttempts
+      });
+      saveState(state);
 
-    session.answers.push({
-      prompt: currentQuestion.prompt,
-      topic: currentQuestion.topic,
-      selected: selectedText,
-      correctText: currentQuestion.correctText,
-      correct: isCorrect
-    });
-    saveState(state);
+      var scoreSoFar = session.answers.filter(function(a){return a.correct;}).length;
+      $('quizScoreText').textContent = 'Score ' + scoreSoFar;
+    } else {
+      // First wrong answer: keep the question active and allow one more try.
+      answeredWrongOptions[selectedText] = true;
+      btnEl.classList.add('incorrect');
+      btnEl.classList.add('locked');
+      btnEl.disabled = true;
 
-    var scoreSoFar = session.answers.filter(function(a){return a.correct;}).length;
-    $('quizScoreText').textContent = 'Score ' + scoreSoFar;
+      var fb2 = $('quizFeedback');
+      fb2.className = 'feedback show is-incorrect';
+      $('quizFeedbackHead').textContent = 'Belum tepat — coba lagi!';
+      $('quizFeedbackBody').textContent = 'Jawabanmu salah. Kamu masih punya 1 kesempatan lagi.';
+      $('quizNextWrap').className = 'next-wrap';
+    }
   }
 
   function renderResult(){

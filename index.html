@@ -6871,16 +6871,42 @@
       ? '<ellipse class="eye eye-left" cx="54" cy="70" rx="7" ry="9" transform="rotate(22 54 70)"/><ellipse class="eye eye-right" cx="96" cy="70" rx="7" ry="9" transform="rotate(-22 96 70)"/><circle class="eye-hi" cx="56" cy="67" r="2.5"/><circle class="eye-hi" cx="98" cy="67" r="2.5"/>'
       : '<ellipse class="eye eye-left" cx="54" cy="70" rx="7" ry="9"/><ellipse class="eye eye-right" cx="96" cy="70" rx="7" ry="9"/><circle class="eye-hi" cx="56" cy="67" r="2.5"/><circle class="eye-hi" cx="98" cy="67" r="2.5"/>';
     var mouth=sad?'M68 93 Q75 87 82 93':sleepy?'M68 89 Q75 93 82 89':angry?'M68 94 Q75 88 82 94':'M68 88 Q75 95 82 88';
+    /* ---- wajah/moncong/tambalan khas tiap hewan ---- */
     var faceExtra='';
-    if(type==='panda') faceExtra='<ellipse cx="54" cy="70" rx="13" ry="16" fill="#303030" transform="rotate(-20 54 70)"/><ellipse cx="96" cy="70" rx="13" ry="16" fill="#303030" transform="rotate(20 96 70)"/>';
-    if(type==='penguin') faceExtra='<ellipse cx="75" cy="84" rx="43" ry="50" fill="#f8fafb" opacity=".97"/>';
+    if(type==='panda') faceExtra='<ellipse cx="54" cy="70" rx="15" ry="18" fill="#1a1a1a" transform="rotate(-20 54 70)"/><ellipse cx="96" cy="70" rx="15" ry="18" fill="#1a1a1a" transform="rotate(20 96 70)"/>';
+    else if(type==='penguin') faceExtra='<ellipse cx="75" cy="84" rx="43" ry="50" fill="#f8fafb" opacity=".97"/>';
+    else if(type==='dog') faceExtra='<ellipse cx="75" cy="89" rx="23" ry="17" fill="'+cfg.inner+'" opacity=".6"/>';
+    else if(type==='fox') faceExtra='<ellipse cx="75" cy="87" rx="25" ry="18" fill="'+cfg.inner+'" opacity=".75"/>';
+    else if(type==='tiger') faceExtra='<ellipse cx="75" cy="87" rx="23" ry="17" fill="'+cfg.inner+'" opacity=".75"/>';
+    else if(type==='monkey') faceExtra='<ellipse cx="75" cy="82" rx="31" ry="29" fill="'+cfg.inner+'" opacity=".85"/>';
     var stripes=type==='tiger'?'<path d="M35 58l16 9M115 58L99 67M35 81l16 2M115 81L99 79M46 46l10 12M104 46L94 58" stroke="#4b2b1c" stroke-width="5" stroke-linecap="round"/>':'';
     var mane=type==='lion'?'<circle cx="75" cy="70" r="63" fill="#a96d27" opacity=".92"/>':'';
+    var whiskers=type==='cat'?'<path d="M18 86 L44 83M18 95 L44 91M132 86 L106 83M132 95 L106 91" stroke="#7a5643" stroke-width="2.5" stroke-linecap="round"/>':'';
+    /* ---- telinga: bentuk beda per hewan, bukan cuma warna ---- */
     var ears='';
     if(type==='bunny') ears='<ellipse class="ear ear-left" cx="50" cy="30" rx="17" ry="36" fill="'+cfg.body+'" transform="rotate(-10 50 30)"/><ellipse cx="50" cy="31" rx="8" ry="26" fill="'+cfg.inner+'" transform="rotate(-10 50 31)"/><ellipse class="ear ear-right" cx="100" cy="30" rx="17" ry="36" fill="'+cfg.body+'" transform="rotate(10 100 30)"/><ellipse cx="100" cy="31" rx="8" ry="26" fill="'+cfg.inner+'" transform="rotate(10 100 31)"/>';
+    else if(type==='chick') ears='<ellipse cx="57" cy="31" rx="8" ry="19" fill="'+cfg.body+'"/><ellipse cx="93" cy="31" rx="8" ry="19" fill="'+cfg.body+'"/>';
+    else if(type==='cat') ears='<path class="ear ear-left" d="M22 52 L32 10 L56 44 Z" fill="'+cfg.ear+'"/><path d="M28 46 L34 24 L48 42 Z" fill="'+cfg.inner+'"/><path class="ear ear-right" d="M128 52 L118 10 L94 44 Z" fill="'+cfg.ear+'"/><path d="M122 46 L116 24 L102 42 Z" fill="'+cfg.inner+'"/>';
+    else if(type==='dog') ears='<ellipse class="ear ear-left" cx="28" cy="56" rx="15" ry="31" fill="'+cfg.ear+'" transform="rotate(-16 28 56)"/><ellipse class="ear ear-right" cx="122" cy="56" rx="15" ry="31" fill="'+cfg.ear+'" transform="rotate(16 122 56)"/>';
+    else if(type==='fox') ears='<path class="ear ear-left" d="M18 50 L29 5 L58 44 Z" fill="'+cfg.body+'"/><path d="M21 40 L28 15 L43 38 Z" fill="'+cfg.dark+'"/><path class="ear ear-right" d="M132 50 L121 5 L92 44 Z" fill="'+cfg.body+'"/><path d="M129 40 L122 15 L107 38 Z" fill="'+cfg.dark+'"/>';
+    else if(type==='lion'||type==='penguin') ears='';
+    else if(type==='koala') ears='<circle class="ear ear-left" cx="32" cy="40" r="27" fill="'+cfg.ear+'"/><circle cx="32" cy="40" r="16" fill="'+cfg.inner+'"/><circle class="ear ear-right" cx="118" cy="40" r="27" fill="'+cfg.ear+'"/><circle cx="118" cy="40" r="16" fill="'+cfg.inner+'"/>';
+    else if(type==='hamster') ears='<circle class="ear ear-left" cx="47" cy="37" r="12" fill="'+cfg.ear+'"/><circle class="ear ear-right" cx="103" cy="37" r="12" fill="'+cfg.ear+'"/>';
+    else if(type==='monkey') ears='<circle class="ear ear-left" cx="22" cy="62" r="23" fill="'+cfg.ear+'"/><circle cx="22" cy="62" r="13" fill="'+cfg.inner+'"/><circle class="ear ear-right" cx="128" cy="62" r="23" fill="'+cfg.ear+'"/><circle cx="128" cy="62" r="13" fill="'+cfg.inner+'"/>';
+    else if(type==='tiger') ears='<path class="ear ear-left" d="M24 50 L35 11 L58 44 Z" fill="'+cfg.body+'"/><path d="M27 42 L34 21 L47 40 Z" fill="'+cfg.dark+'"/><path class="ear ear-right" d="M126 50 L115 11 L92 44 Z" fill="'+cfg.body+'"/><path d="M123 42 L116 21 L103 40 Z" fill="'+cfg.dark+'"/>';
     else ears='<circle class="ear ear-left" cx="39" cy="44" r="19" fill="'+cfg.ear+'"/><circle class="ear ear-right" cx="111" cy="44" r="19" fill="'+cfg.ear+'"/>';
-    if(type==='chick') ears='<ellipse cx="57" cy="31" rx="8" ry="19" fill="#f6d84d"/><ellipse cx="93" cy="31" rx="8" ry="19" fill="#f6d84d"/>';
-    var tail=(type==='cat'||type==='fox'||type==='monkey')?'<path class="tail" d="M123 108 Q153 118 133 143 Q122 154 111 139" stroke="'+cfg.dark+'"/>':'';
+    /* ---- ekor: cuma hewan tertentu yang punya ---- */
+    var tail='';
+    if(type==='cat'||type==='monkey') tail='<path class="tail" d="M123 108 Q153 118 133 143 Q122 154 111 139" fill="none" stroke="'+cfg.dark+'" stroke-width="11" stroke-linecap="round"/>';
+    else if(type==='fox') tail='<path class="tail" d="M119 106 Q170 110 160 152 Q151 170 116 150 Z" fill="'+cfg.body+'" stroke="'+cfg.dark+'" stroke-width="2"/><ellipse cx="134" cy="153" rx="16" ry="13" fill="#ffffff"/>';
+    else if(type==='bunny') tail='<circle class="tail" cx="122" cy="119" r="13" fill="'+cfg.inner+'"/>';
+    /* ---- hidung/paruh: default kecil, beda untuk beberapa hewan ---- */
+    var nose='<ellipse cx="75" cy="84" rx="6" ry="4" fill="#5b3b3b"/>';
+    if(type==='koala') nose='<ellipse cx="75" cy="86" rx="16" ry="12" fill="#1c1c1c"/>';
+    else if(type==='penguin') nose='<path d="M67 82 L83 82 L75 92 Z" fill="#f0932b"/>';
+    else if(type==='chick') nose='<path d="M65 83 L85 83 L75 95 Z" fill="#f0932b"/>';
+    /* ---- kaki: penguin & anak ayam pakai kaki oranye ---- */
+    var footFill=(type==='penguin'||type==='chick')?'#f0932b':cfg.dark;
     return '<svg class="tama-chibi" viewBox="0 0 150 170" aria-label="Pet '+type+'" role="img">'+
       '<defs><radialGradient id="'+uid+'" cx="31%" cy="20%"><stop offset="0" stop-color="#fff" stop-opacity=".92"/><stop offset=".35" stop-color="'+cfg.body+'"/><stop offset="1" stop-color="'+cfg.dark+'"/></radialGradient><radialGradient id="b'+uid+'" cx="35%" cy="20%"><stop offset="0" stop-color="#fff" stop-opacity=".58"/><stop offset="1" stop-color="'+cfg.inner+'"/></radialGradient></defs>'+
       tail+ears+mane+
@@ -6888,9 +6914,9 @@
       '<ellipse cx="75" cy="104" rx="42" ry="37" fill="url(#b'+uid+')" opacity=".92"/>'+
       '<ellipse cx="45" cy="93" rx="10" ry="8" fill="#ff9eb0" opacity="'+(sad?'0.08':'0.30')+'"/><ellipse cx="105" cy="93" rx="10" ry="8" fill="#ff9eb0" opacity="'+(sad?'0.08':'0.30')+'"/><path class="arm arm-left" d="M22 104 Q10 112 22 124" fill="none" stroke="'+cfg.dark+'" stroke-width="10" stroke-linecap="round"/><path class="arm arm-right" d="M128 104 Q140 112 128 124" fill="none" stroke="'+cfg.dark+'" stroke-width="10" stroke-linecap="round"/>'+
       faceExtra+stripes+eyeMarkup+
-      '<ellipse cx="75" cy="84" rx="6" ry="4" fill="#5b3b3b"/>'+
+      nose+whiskers+
       '<path class="mouth" d="'+mouth+'"/>'+
-      '<ellipse class="foot foot-left" cx="49" cy="143" rx="20" ry="11" fill="'+cfg.dark+'"/><ellipse class="foot foot-right" cx="101" cy="143" rx="20" ry="11" fill="'+cfg.dark+'"/>'+
+      '<ellipse class="foot foot-left" cx="49" cy="143" rx="20" ry="11" fill="'+footFill+'"/><ellipse class="foot foot-right" cx="101" cy="143" rx="20" ry="11" fill="'+footFill+'"/>'+
       '<ellipse class="highlight" cx="49" cy="55" rx="15" ry="8" fill="#fff" transform="rotate(-25 49 55)"/>'+
       '<ellipse class="highlight" cx="61" cy="124" rx="12" ry="6" fill="#fff" opacity=".18"/>'+
       '</svg>';

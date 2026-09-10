@@ -937,6 +937,23 @@
   }
   .admin-user-actions button:hover{ border-color:var(--ink-soft); color:var(--ink); }
 
+  /* ---------- Point Achievements ---------- */
+  .achievement-hero{
+    background:linear-gradient(135deg,#FFF7D6 0%,#FFE8A8 100%);
+    border:1px solid #F0D28A; border-radius:var(--radius);
+    padding:20px 18px; margin-bottom:16px; text-align:center;
+  }
+  .achievement-hero-title{font-family:'Fraunces',serif;font-size:20px;font-weight:600;margin-bottom:5px;}
+  .achievement-hero-sub{font-size:13px;color:#6B531A;line-height:1.45;}
+  .achievement-feed{display:flex;flex-direction:column;gap:10px;}
+  .achievement-item{background:var(--paper-raised);border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:flex;align-items:center;gap:12px;}
+  .achievement-badge{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#FFF4C7;border:1px solid #E9C96B;font-size:20px;flex-shrink:0;}
+  .achievement-body{flex:1;min-width:0;}
+  .achievement-user{font-family:'Fraunces',serif;font-size:16px;font-weight:600;color:var(--ink);}
+  .achievement-title{font-size:12.5px;font-weight:700;color:var(--gold-deep);margin-top:2px;}
+  .achievement-meta{font-size:11.5px;color:var(--ink-soft);margin-top:3px;}
+  .achievement-points{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--teal);font-size:13px;text-align:right;white-space:nowrap;}
+
   /* ---------- Points & Reward ---------- */
   .points-hero{
     background:linear-gradient(135deg, var(--ink) 0%, #2A3A63 100%);
@@ -1088,6 +1105,15 @@
     cursor:pointer;
   }
   .reward-admin-actions button:hover{ border-color:var(--ink-soft); color:var(--ink); }
+  .sfx-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:12px;}
+  .sfx-admin-card{border:1px dashed var(--line);border-radius:10px;padding:12px;background:var(--paper-raised);}
+  .sfx-admin-card label{display:block;font-size:12px;font-weight:700;margin-bottom:7px;}
+  .sfx-admin-card input[type=file]{width:100%;font-size:11.5px;}
+  .sfx-admin-actions{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:8px;}
+  .sfx-admin-actions button{width:auto;padding:7px 11px;font-size:11.5px;}
+  .sfx-admin-status{font-size:11px;color:var(--ink-soft);margin-top:6px;min-height:16px;}
+  .sfx-admin-current{font-size:11px;color:var(--ink-soft);margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  @media(max-width:600px){.sfx-admin-grid{grid-template-columns:1fr;}}
   .points-msg{
     font-size:13px;
     text-align:center;
@@ -1291,6 +1317,28 @@
     user-select: text; /* biar tetap bisa isi jawaban di form */
   }
 
+  /* ---------- Music playlist ---------- */
+  .music-player{background:var(--paper-raised);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);position:sticky;top:10px;z-index:3;}
+  .music-now{font-size:13px;color:var(--ink-soft);margin-bottom:8px;}
+  .music-now strong{color:var(--ink);font-size:16px;}
+  .music-player audio{width:100%;margin-top:8px;}
+  .music-group{background:var(--paper-raised);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;overflow:hidden;}
+  .music-group-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:15px 17px;cursor:pointer;}
+  .music-group-title{font-weight:700;font-size:16px;}
+  .music-group-count{font-size:12px;color:var(--grey);margin-left:7px;}
+  .music-track-list{padding:0 12px 12px;border-top:1px solid var(--line);}
+  .music-track{display:flex;align-items:center;gap:10px;padding:11px 5px;border-bottom:1px solid var(--line);}
+  .music-track:last-child{border-bottom:none;}
+  .music-track-name{flex:1;font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .music-play{width:auto!important;padding:8px 12px!important;font-size:13px!important;}
+  .music-admin{margin-bottom:16px;}
+  .music-admin-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .music-admin-row input{flex:1;min-width:180px;}
+  .music-upload-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 15px;background:var(--paper);border-top:1px dashed var(--line);}
+  .music-upload-row input[type=file]{flex:1;min-width:200px;}
+  .music-small{font-size:12px;color:var(--grey);}
+  @media(max-width:600px){.music-track{align-items:center}.music-upload-row{display:block}.music-upload-row input{width:100%;margin-bottom:8px}.music-upload-row button{width:auto!important;display:inline-flex!important}}
+
   /* ---------- Coret-coretan / scratchpad ---------- */
   .scratchpad-wrap{
     width:100%;
@@ -1413,7 +1461,9 @@
       <button class="topbar-btn" id="topbarTipsBtn">Trik &amp; Rumus</button>
       <button class="topbar-btn" id="topbarRiwayatBtn">Riwayat</button>
       <button class="topbar-btn" id="topbarScratchpadBtn">Coret²an</button>
+      <button class="topbar-btn" id="topbarMusicBtn">Music</button>
       <button class="topbar-btn" id="topbarPointsBtn">Point Reward</button>
+      <button class="topbar-btn" id="topbarAchievementBtn">Pencapaian</button>
       <button class="topbar-btn" id="topbarAdminBtn" style="display:none;">Kelola User</button>
       <button class="topbar-btn" id="topbarLogoutBtn">Keluar</button>
     </div>
@@ -1643,6 +1693,27 @@
     </div>
   </div>
 
+  <!-- ===================== MUSIC VIEW ===================== -->
+  <div id="view-music" class="hidden">
+    <button class="btn-ghost" id="musicBackBtn" style="width:auto; padding:8px 14px; margin-bottom:14px; border-radius:8px; font-size:13px; font-weight:600;">&larr; All Subjects</button>
+    <h1 style="font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px;">Music</h1>
+    <p class="subtitle">Pilih playlist dan dengarkan musik sambil mengerjakan kuis.</p>
+    <div id="musicAdminBox" class="card music-admin hidden">
+      <div class="card-title" style="font-size:16px;">Kelola Playlist</div>
+      <div class="card-sub">Khusus Superadmin. Buat grup seperti Korea Music, Indo Music, Japan Music, dan lainnya.</div>
+      <div class="music-admin-row">
+        <input id="musicGroupNameInput" type="text" placeholder="Nama grup, contoh: Korea Music">
+        <button class="btn btn-primary" id="musicAddGroupBtn" style="width:auto;">＋ Tambah Grup</button>
+      </div>
+      <div class="music-small" style="margin-top:9px;">Setelah grup dibuat, upload lagu langsung di bawah grup tersebut.</div>
+    </div>
+    <div class="music-player">
+      <div class="music-now">Sedang diputar: <strong id="musicNowTitle">Belum ada lagu</strong></div>
+      <audio id="musicAudio" controls preload="none"></audio>
+    </div>
+    <div id="musicPlaylist"><p class="empty-hint">Memuat playlist...</p></div>
+  </div>
+
   <!-- ===================== POINT REWARD VIEW ===================== -->
   <div id="view-points" class="hidden">
     <button class="btn-ghost" id="pointsBackBtn" style="width:auto; padding:8px 14px; margin-bottom:14px; border-radius:8px; font-size:13px; font-weight:600;">&larr; All Subjects</button>
@@ -1669,6 +1740,18 @@
     <div id="pointsTabContent"></div>
   </div>
 
+  <!-- ===================== POINT ACHIEVEMENTS VIEW ===================== -->
+  <div id="view-achievements" class="hidden">
+    <button class="btn-ghost" id="achievementBackBtn" style="width:auto; padding:8px 14px; margin-bottom:14px; border-radius:8px; font-size:13px; font-weight:600;">&larr; All Subjects</button>
+    <h1 style="font-family:'Fraunces',serif; font-size:22px; margin:0 0 4px;">Pencapaian Poin</h1>
+    <p class="subtitle">Lihat pencapaian poin semua user dan saling beri semangat. 🎉</p>
+    <div class="achievement-hero">
+      <div class="achievement-hero-title">🏆 Papan Pencapaian</div>
+      <div class="achievement-hero-sub">Poin yang ditampilkan sebagai pencapaian adalah total poin yang pernah dikumpulkan, jadi reward yang ditukar tidak menghapus pencapaian.</div>
+    </div>
+    <div id="achievementList" class="achievement-feed"><p class="empty-hint">Memuat pencapaian...</p></div>
+  </div>
+
   <!-- ===================== ADMIN: KELOLA USER VIEW ===================== -->
   <div id="view-admin" class="hidden">
     <button class="btn-ghost" id="adminBackBtn" style="width:auto; padding:8px 14px; margin-bottom:14px; border-radius:8px; font-size:13px; font-weight:600;">&larr; All Subjects</button>
@@ -1679,6 +1762,7 @@
       <button class="points-tab-btn active" data-tab="users">Kelola User</button>
       <button class="points-tab-btn" data-tab="library">Gambar Library</button>
       <button class="points-tab-btn" data-tab="background">Background App</button>
+      <button class="points-tab-btn" data-tab="sounds">Sound Effect</button>
     </div>
 
     <div id="adminUserPanel">
@@ -1731,6 +1815,19 @@
         </div>
       </div>
       <div id="adminLibrarySectionList"></div>
+    </div>
+
+    <div id="adminSfxPanel" class="hidden">
+      <div class="card">
+        <div class="card-title" style="font-size:16px;">Sound Effect Jawaban</div>
+        <div class="card-sub">Superadmin dapat mengganti suara untuk 4 kondisi: benar kesempatan pertama, benar kesempatan kedua, salah kesempatan pertama, dan salah kesempatan kedua. File disimpan di Supabase Storage dan otomatis dipakai semua user.</div>
+        <div class="sfx-admin-grid">
+          <div class="sfx-admin-card"><label>✅ Benar — Kesempatan 1</label><input type="file" accept="audio/*" id="adminSfxCorrect1File"><div class="sfx-admin-actions"><button class="btn btn-primary" id="adminSfxCorrect1Btn">Upload</button><button class="btn btn-ghost" id="adminSfxCorrect1Play">▶ Tes</button></div><div class="sfx-admin-current" id="adminSfxCorrect1Current"></div><div class="sfx-admin-status" id="adminSfxCorrect1Status"></div></div>
+          <div class="sfx-admin-card"><label>🏆 Benar — Kesempatan 2</label><input type="file" accept="audio/*" id="adminSfxCorrect2File"><div class="sfx-admin-actions"><button class="btn btn-primary" id="adminSfxCorrect2Btn">Upload</button><button class="btn btn-ghost" id="adminSfxCorrect2Play">▶ Tes</button></div><div class="sfx-admin-current" id="adminSfxCorrect2Current"></div><div class="sfx-admin-status" id="adminSfxCorrect2Status"></div></div>
+          <div class="sfx-admin-card"><label>❌ Salah — Kesempatan 1</label><input type="file" accept="audio/*" id="adminSfxWrong1File"><div class="sfx-admin-actions"><button class="btn btn-primary" id="adminSfxWrong1Btn">Upload</button><button class="btn btn-ghost" id="adminSfxWrong1Play">▶ Tes</button></div><div class="sfx-admin-current" id="adminSfxWrong1Current"></div><div class="sfx-admin-status" id="adminSfxWrong1Status"></div></div>
+          <div class="sfx-admin-card"><label>💀 Salah — Kesempatan 2</label><input type="file" accept="audio/*" id="adminSfxWrong2File"><div class="sfx-admin-actions"><button class="btn btn-primary" id="adminSfxWrong2Btn">Upload</button><button class="btn btn-ghost" id="adminSfxWrong2Play">▶ Tes</button></div><div class="sfx-admin-current" id="adminSfxWrong2Current"></div><div class="sfx-admin-status" id="adminSfxWrong2Status"></div></div>
+        </div>
+      </div>
     </div>
 
     <div id="adminBackgroundPanel" class="hidden">
@@ -5351,7 +5448,9 @@
     tips: $('view-tips'),
     riwayat: $('view-riwayat'),
     points: $('view-points'),
+    achievements: $('view-achievements'),
     scratchpad: $('view-scratchpad'),
+    music: $('view-music'),
     admin: $('view-admin')
   };
   function showView(name){
@@ -5643,6 +5742,7 @@
     $('appMain').classList.remove('hidden');
 
     renderHub(); // renderHub builds the wheel (or shows the locked-mapel box) as needed
+    loadQuizSfx();
     syncToeflBank();
     syncScienceFunFacts();
     syncBibleFunFacts();
@@ -5691,7 +5791,46 @@
   $('topbarLogoutBtn').addEventListener('click', logout);
   $('topbarRiwayatBtn').addEventListener('click', function(){ renderRiwayat(); });
   $('topbarPointsBtn').addEventListener('click', function(){ renderPoints(); });
+  /* =========================================================
+     POINT ACHIEVEMENTS — public leaderboard/feed for all logged-in users.
+     Reads only aggregate point achievements; no passwords or private data.
+  ========================================================= */
+  function renderAchievements(){
+    showView('achievements');
+    var el=$('achievementList');
+    el.innerHTML='<p class="empty-hint">Memuat pencapaian...</p>';
+    fetch(SUPABASE_URL + '/rest/v1/rpc/alflesto_list_point_achievements', {
+      method:'POST', headers:supaHeaders(), body:'{}'
+    }).then(function(r){
+      if(!r.ok) throw new Error('HTTP '+r.status);
+      return r.json();
+    }).then(function(rows){
+      if(!Array.isArray(rows) || !rows.length){
+        el.innerHTML='<p class="empty-hint">Belum ada pencapaian poin. Yuk mulai kumpulkan poin! 🚀</p>';
+        return;
+      }
+      el.innerHTML='';
+      rows.forEach(function(row,idx){
+        var item=document.createElement('div'); item.className='achievement-item';
+        var badge=document.createElement('div'); badge.className='achievement-badge';
+        badge.textContent = row.milestone_points>=10000 ? '👑' : row.milestone_points>=5000 ? '🏆' : row.milestone_points>=1000 ? '🥇' : row.milestone_points>=500 ? '🥈' : '⭐';
+        var body=document.createElement('div'); body.className='achievement-body';
+        var user=document.createElement('div'); user.className='achievement-user'; user.textContent=(idx+1)+'. '+(row.display_name || row.username);
+        var title=document.createElement('div'); title.className='achievement-title'; title.textContent=row.achievement_title || 'Perjalanan Dimulai';
+        var meta=document.createElement('div'); meta.className='achievement-meta'; meta.textContent=(row.achievement_label || 'Mulai mengumpulkan poin') + (row.current_balance!=null ? ' · Saldo saat ini '+Number(row.current_balance).toLocaleString('id-ID')+' poin' : '');
+        body.appendChild(user); body.appendChild(title); body.appendChild(meta);
+        var pts=document.createElement('div'); pts.className='achievement-points'; pts.textContent=Number(row.total_earned||0).toLocaleString('id-ID')+' poin';
+        item.appendChild(badge); item.appendChild(body); item.appendChild(pts); el.appendChild(item);
+      });
+    }).catch(function(e){
+      console.error('Load point achievements failed',e);
+      el.innerHTML='<p class="empty-hint">Pencapaian belum dapat dimuat. Coba buka tab ini lagi.</p>';
+    });
+  }
+
   $('topbarScratchpadBtn').addEventListener('click', function(){ showScratchpad(); });
+  $('topbarMusicBtn').addEventListener('click', function(){ renderMusic(); });
+  $('musicBackBtn').addEventListener('click', function(){ renderHub(); });
   $('scratchpadBackBtn').addEventListener('click', function(){ renderHub(); });
   $('topbarAdminBtn').addEventListener('click', function(){ if (currentUser && currentUser.role === 'superadmin') renderAdmin(); });
   $('riwayatBackBtn').addEventListener('click', function(){ renderHub(); });
@@ -5913,6 +6052,116 @@
   $('riwayatDateFilter').addEventListener('change', loadRiwayat);
 
   /* =========================================================
+     MUSIC PLAYLIST — Supabase-backed groups and tracks
+  ========================================================= */
+  var musicGroupsCache = [];
+  var musicExpandedGroups = {};
+
+  function musicFetchJson(url, label){
+    return fetch(url, {headers:supaHeaders()}).then(function(r){
+      if(!r.ok){
+        return r.text().then(function(t){
+          var msg=t;
+          try { var j=JSON.parse(t); msg=j.message || j.error || j.hint || t; } catch(_) {}
+          throw new Error(label+' ('+r.status+'): '+msg);
+        });
+      }
+      return r.json();
+    });
+  }
+
+  function loadMusic(){
+    $('musicPlaylist').innerHTML='<div class="card"><div class="empty-note">Memuat playlist...</div></div>';
+    return Promise.all([
+      musicFetchJson(SUPABASE_URL + '/rest/v1/alflesto_music_groups?select=*&active=eq.true&order=sort_order.asc,id.asc','Grup Music'),
+      musicFetchJson(SUPABASE_URL + '/rest/v1/alflesto_music_tracks?select=*&active=eq.true&order=sort_order.asc,id.asc','Daftar lagu')
+    ]).then(function(res){
+      var groups = Array.isArray(res[0]) ? res[0] : [];
+      var tracks = Array.isArray(res[1]) ? res[1] : [];
+      musicGroupsCache = groups.map(function(g){ g.tracks = tracks.filter(function(t){return String(t.group_id)===String(g.id);}); return g; });
+      renderMusicPlaylist();
+      return musicGroupsCache;
+    }).catch(function(e){
+      console.error('Load music failed',e);
+      $('musicPlaylist').innerHTML='<div class="card"><div class="empty-note">Gagal memuat playlist.<br><small>'+escapeHtml(e.message || 'Kesalahan koneksi')+'</small><br><button class="btn btn-primary" id="musicRetryBtn" style="width:auto;margin-top:10px;">↻ Coba Lagi</button></div></div>';
+      var rb=$('musicRetryBtn'); if(rb) rb.addEventListener('click',loadMusic);
+      return [];
+    });
+  }
+
+  function renderMusic(){
+    showView('music');
+    var isSuper = currentUser && currentUser.role === 'superadmin';
+    $('musicAdminBox').classList.toggle('hidden', !isSuper);
+    loadMusic();
+  }
+
+  function playMusicTrack(track){
+    var audio=$('musicAudio');
+    $('musicNowTitle').textContent=track.title || 'Lagu';
+    audio.src=track.file_url;
+    audio.play().catch(function(){ /* browser may require a tap */ });
+  }
+
+  function renderMusicPlaylist(){
+    var el=$('musicPlaylist');
+    if(!musicGroupsCache.length){ el.innerHTML='<div class="card"><div class="empty-note">Belum ada playlist. Superadmin dapat membuat grup pertama.</div></div>'; return; }
+    el.innerHTML='';
+    musicGroupsCache.forEach(function(g){
+      var wrap=document.createElement('div'); wrap.className='music-group';
+      var expanded=musicExpandedGroups[g.id] !== false;
+      var head=document.createElement('div'); head.className='music-group-head';
+      head.innerHTML='<div><span class="music-group-title">🎵 '+escapeHtml(g.name)+'</span><span class="music-group-count">'+g.tracks.length+' lagu</span></div><span>'+ (expanded?'▾':'▸') +'</span>';
+      head.addEventListener('click',function(){musicExpandedGroups[g.id]=!expanded; renderMusicPlaylist();});
+      wrap.appendChild(head);
+      if(expanded){
+        var list=document.createElement('div'); list.className='music-track-list';
+        if(!g.tracks.length) list.innerHTML='<div class="music-small" style="padding:12px 5px;">Belum ada lagu di grup ini.</div>';
+        g.tracks.forEach(function(t,i){
+          var row=document.createElement('div'); row.className='music-track';
+          row.innerHTML='<span class="music-track-name">'+(i+1)+'. '+escapeHtml(t.title)+'</span><button class="btn btn-primary music-play">▶ Putar</button>';
+          row.querySelector('button').addEventListener('click',function(){playMusicTrack(t);});
+          list.appendChild(row);
+        });
+        if(currentUser && currentUser.role==='superadmin'){
+          var up=document.createElement('div'); up.className='music-upload-row';
+          up.innerHTML='<input type="file" accept="audio/*" multiple><button class="btn btn-primary" style="width:auto;">Upload Lagu</button>';
+          var input=up.querySelector('input'), btn=up.querySelector('button');
+          btn.addEventListener('click',function(){uploadMusicFiles(g,input,btn);});
+          list.appendChild(up);
+        }
+        wrap.appendChild(list);
+      }
+      el.appendChild(wrap);
+    });
+  }
+
+  function uploadMusicFiles(group,input,btn){
+    var files=Array.prototype.slice.call(input.files||[]); if(!files.length){alert('Pilih file lagu terlebih dahulu.');return;}
+    btn.disabled=true; btn.textContent='Upload...';
+    var chain=Promise.resolve();
+    files.forEach(function(file){
+      chain=chain.then(function(){
+        if(file.size>50*1024*1024) throw new Error(file.name+' melebihi batas 50 MB.');
+        var ext=(file.name.split('.').pop()||'mp3').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp3';
+        var path='group-'+group.id+'/'+Date.now()+'-'+Math.random().toString(36).slice(2,8)+'.'+ext;
+        return fetch(SUPABASE_URL+'/storage/v1/object/music/'+path,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY,'Content-Type':file.type||'audio/mpeg','x-upsert':'false'},body:file})
+          .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'Upload gagal');}); return fetch(SUPABASE_URL+'/rest/v1/alflesto_music_tracks',{method:'POST',headers:supaHeaders({Prefer:'return=minimal'}),body:JSON.stringify({group_id:group.id,title:file.name.replace(/\.[^.]+$/,''),file_url:SUPABASE_URL+'/storage/v1/object/public/music/'+path,storage_path:path,sort_order:group.tracks.length + files.indexOf(file)})});})
+          .then(function(r){if(!r.ok)throw new Error('Gagal menyimpan playlist.');});
+      });
+    });
+    chain.then(function(){input.value=''; loadMusic();}).catch(function(e){alert('Upload gagal: '+e.message);}).finally(function(){btn.disabled=false;btn.textContent='Upload Lagu';});
+  }
+
+  $('musicAddGroupBtn').addEventListener('click',function(){
+    var name=$('musicGroupNameInput').value.trim(); if(!name){alert('Isi nama grup terlebih dahulu.');return;}
+    var btn=this; btn.disabled=true;
+    fetch(SUPABASE_URL+'/rest/v1/alflesto_music_groups',{method:'POST',headers:supaHeaders({Prefer:'return=minimal'}),body:JSON.stringify({name:name,sort_order:musicGroupsCache.length,active:true})})
+      .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'Gagal membuat grup');}); $('musicGroupNameInput').value=''; musicExpandedGroups={}; return loadMusic();})
+      .catch(function(e){alert('Gagal membuat grup: '+e.message);}).finally(function(){btn.disabled=false;});
+  });
+
+  /* =========================================================
      2d. ADMIN — manage users (superadmin only)
   ========================================================= */
   var adminEditingUsername = null;
@@ -5951,8 +6200,10 @@
         $('adminUserPanel').classList.toggle('hidden', tab !== 'users');
         $('adminLibraryPanel').classList.toggle('hidden', tab !== 'library');
         $('adminBackgroundPanel').classList.toggle('hidden', tab !== 'background');
+        $('adminSfxPanel').classList.toggle('hidden', tab !== 'sounds');
         if (tab === 'library') loadAdminLibrary();
         if (tab === 'background') loadAdminBackground();
+        if (tab === 'sounds') loadAdminSfx();
       });
     });
   }
@@ -6092,6 +6343,37 @@
       })
       .catch(function(e){ console.error('App background fetch failed', e); });
   }
+
+  var adminSfxConfig = [
+    {key:'correct_1_url', label:'Benar kesempatan 1', file:'adminSfxCorrect1File', btn:'adminSfxCorrect1Btn', play:'adminSfxCorrect1Play', current:'adminSfxCorrect1Current', status:'adminSfxCorrect1Status'},
+    {key:'correct_2_url', label:'Benar kesempatan 2', file:'adminSfxCorrect2File', btn:'adminSfxCorrect2Btn', play:'adminSfxCorrect2Play', current:'adminSfxCorrect2Current', status:'adminSfxCorrect2Status'},
+    {key:'wrong_1_url', label:'Salah kesempatan 1', file:'adminSfxWrong1File', btn:'adminSfxWrong1Btn', play:'adminSfxWrong1Play', current:'adminSfxWrong1Current', status:'adminSfxWrong1Status'},
+    {key:'wrong_2_url', label:'Salah kesempatan 2', file:'adminSfxWrong2File', btn:'adminSfxWrong2Btn', play:'adminSfxWrong2Play', current:'adminSfxWrong2Current', status:'adminSfxWrong2Status'}
+  ];
+  function loadAdminSfx(){
+    fetch(SUPABASE_URL + '/rest/v1/alflesto_quiz_sfx_settings?id=eq.1&select=correct_1_url,correct_2_url,wrong_1_url,wrong_2_url',{headers:supaHeaders()})
+      .then(function(r){return r.json();}).then(function(rows){
+        var row=Array.isArray(rows)?rows[0]:null; if(!row)return; quizSfx=Object.assign(quizSfx,row);
+        adminSfxConfig.forEach(function(c){ $(c.current).textContent=row[c.key]?'Suara aktif ✓':'Belum ada suara'; });
+      }).catch(function(e){console.error('Load admin SFX failed',e);});
+  }
+  function uploadAdminSfx(c){
+    var file=$(c.file).files && $(c.file).files[0], status=$(c.status);
+    if(!file){status.textContent='Pilih file audio dulu.';return;}
+    if(file.size>10*1024*1024){status.textContent='File terlalu besar. Maksimal 10 MB.';return;}
+    status.textContent='Mengunggah...';
+    var ext=(file.name.split('.').pop()||'mp3').toLowerCase().replace(/[^a-z0-9]/g,'')||'mp3';
+    var path=c.key+'-'+Date.now()+'.'+ext;
+    fetch(SUPABASE_URL+'/storage/v1/object/quiz-sfx/'+path,{method:'POST',headers:{apikey:SUPABASE_ANON_KEY,Authorization:'Bearer '+SUPABASE_ANON_KEY,'Content-Type':file.type||'application/octet-stream','x-upsert':'true'},body:file})
+      .then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t)});return SUPABASE_URL+'/storage/v1/object/public/quiz-sfx/'+path;})
+      .then(function(url){return fetch(SUPABASE_URL+'/rest/v1/alflesto_quiz_sfx_settings?id=eq.1',{method:'PATCH',headers:supaHeaders({Prefer:'return=minimal'}),body:JSON.stringify((function(){var o={};o[c.key]=url;o.updated_at=new Date().toISOString();return o;})())}).then(function(r){if(!r.ok)throw new Error('save setting failed');return url;});})
+      .then(function(url){quizSfx[c.key]=url;$(c.current).textContent='Suara aktif ✓';status.textContent='Berhasil diupload dan aktif untuk semua user.';})
+      .catch(function(e){console.error('Upload SFX failed',e);status.textContent='Gagal mengunggah/menyimpan.';});
+  }
+  adminSfxConfig.forEach(function(c){
+    $(c.btn).addEventListener('click',function(){if(currentUser&&currentUser.role==='superadmin')uploadAdminSfx(c);});
+    $(c.play).addEventListener('click',function(){var url=quizSfx[c.key];if(!url){$(c.status).textContent='Belum ada suara yang diupload.';return;} playUploadedSfx(url,function(){});});
+  });
 
   function loadAdminBackground(){
     fetch(SUPABASE_URL + '/rest/v1/alflesto_app_settings?id=eq.1&select=background_url', { headers: supaHeaders() })
@@ -6934,22 +7216,34 @@
     osc.start(startTime);
     osc.stop(startTime + duration + 0.02);
   }
-  function playCorrectSound(){
-    var ctx = getSfxCtx();
-    if (!ctx) return;
-    var t = ctx.currentTime;
-    // Bright ascending "cring" chime.
-    playTone(ctx, 880, t, 0.14, 'sine', 0.22);
-    playTone(ctx, 1318.5, t + 0.09, 0.22, 'sine', 0.22);
+  var quizSfx = { correct_1_url:null, correct_2_url:null, wrong_1_url:null, wrong_2_url:null };
+  var quizSfxAudio = null;
+
+  function loadQuizSfx(){
+    fetch(SUPABASE_URL + '/rest/v1/alflesto_quiz_sfx_settings?id=eq.1&select=correct_1_url,correct_2_url,wrong_1_url,wrong_2_url', {headers:supaHeaders()})
+      .then(function(r){return r.json();})
+      .then(function(rows){ if(Array.isArray(rows) && rows[0]) quizSfx=Object.assign(quizSfx,rows[0]); })
+      .catch(function(e){console.error('Load quiz SFX failed',e);});
   }
-  function playWrongSound(){
-    var ctx = getSfxCtx();
-    if (!ctx) return;
-    var t = ctx.currentTime;
-    // Two-tone descending "tetot" buzzer.
-    playTone(ctx, 300, t, 0.16, 'square', 0.15);
-    playTone(ctx, 180, t + 0.16, 0.22, 'square', 0.15);
+  function playUploadedSfx(url, fallbackFn){
+    if(!url){ fallbackFn(); return; }
+    try{
+      if(quizSfxAudio){ quizSfxAudio.pause(); quizSfxAudio.currentTime=0; }
+      quizSfxAudio=new Audio(url);
+      var p=quizSfxAudio.play();
+      if(p && p.catch) p.catch(function(){ fallbackFn(); });
+    }catch(e){ fallbackFn(); }
   }
+  function playCorrectTone(){
+    var ctx=getSfxCtx(); if(!ctx)return; var t=ctx.currentTime;
+    playTone(ctx,880,t,0.14,'sine',0.22); playTone(ctx,1318.5,t+0.09,0.22,'sine',0.22);
+  }
+  function playWrongTone(){
+    var ctx=getSfxCtx(); if(!ctx)return; var t=ctx.currentTime;
+    playTone(ctx,300,t,0.16,'square',0.15); playTone(ctx,180,t+0.16,0.22,'square',0.15);
+  }
+  function playCorrectSound(attempt){ playUploadedSfx(quizSfx['correct_'+(attempt>=2?2:1)+'_url'], playCorrectTone); }
+  function playWrongSound(attempt){ playUploadedSfx(quizSfx['wrong_'+(attempt>=2?2:1)+'_url'], playWrongTone); }
 
   function handleAnswer(selectedText, btnEl){
     if (locked) return;
@@ -6959,7 +7253,7 @@
     answerAttempts++;
     var session = getOrCreateTodaySession(currentSubject);
     var isCorrect = selectedText === currentQuestion.correctText;
-    if (isCorrect) playCorrectSound(); else playWrongSound();
+    if (isCorrect) playCorrectSound(answerAttempts); else playWrongSound(answerAttempts);
 
     var choiceButtons = $('quizChoices').querySelectorAll('.choice');
     if (isCorrect || answerAttempts >= 2){

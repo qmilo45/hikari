@@ -6120,8 +6120,13 @@
       var wrap=document.createElement('div'); wrap.className='music-group';
       var expanded=musicExpandedGroups[g.id] !== false;
       var head=document.createElement('div'); head.className='music-group-head';
-      head.innerHTML='<div><span class="music-group-title">🎵 '+escapeHtml(g.name)+'</span><span class="music-group-count">'+g.tracks.length+' lagu</span></div><span>'+ (expanded?'▾':'▸') +'</span>';
-      head.addEventListener('click',function(){musicExpandedGroups[g.id]=!expanded; renderMusicPlaylist();});
+      head.innerHTML='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span class="music-group-title">🎵 '+escapeHtml(g.name)+'</span><span class="music-group-count">'+g.tracks.length+' lagu</span></div><div style="display:flex;align-items:center;gap:8px;"><span>'+ (expanded?'▾':'▸') +'</span>'+(currentUser && currentUser.role==='superadmin' ? '<button type="button" class="btn music-delete-group" style="width:auto;padding:7px 10px;background:#fee2e2;color:#991b1b;border:1px solid #fecaca;">🗑 Hapus</button>' : '')+'</div>';
+      head.addEventListener('click',function(e){
+        if(e.target && e.target.closest && e.target.closest('.music-delete-group')) return;
+        musicExpandedGroups[g.id]=!expanded; renderMusicPlaylist();
+      });
+      var delBtn=head.querySelector('.music-delete-group');
+      if(delBtn) delBtn.addEventListener('click',function(e){e.stopPropagation(); deleteMusicGroup(g);});
       wrap.appendChild(head);
       if(expanded){
         var list=document.createElement('div'); list.className='music-track-list';
@@ -6143,6 +6148,28 @@
       }
       el.appendChild(wrap);
     });
+  }
+
+  function deleteMusicGroup(group){
+    if(!currentUser || currentUser.role!=='superadmin') return;
+    var count=group.tracks ? group.tracks.length : 0;
+    var msg='Hapus grup "'+group.name+'"?';
+    if(count) msg+='\n\nGrup ini berisi '+count+' lagu. Lagu dan file musiknya juga akan dihapus.';
+    if(!confirm(msg)) return;
+    var btns=document.querySelectorAll('.music-delete-group');
+    Array.prototype.forEach.call(btns,function(b){b.disabled=true;});
+    var paths=(group.tracks||[]).map(function(t){return t.storage_path;}).filter(Boolean);
+    var chain=Promise.resolve();
+    if(paths.length){
+      chain=chain.then(function(){return fetch(SUPABASE_URL+'/storage/v1/object/music',{method:'DELETE',headers:supaHeaders({'Content-Type':'application/json'}),body:JSON.stringify({prefixes:paths})}).then(function(r){
+        if(!r.ok) return r.text().then(function(t){throw new Error(t||'Gagal menghapus file musik');});
+      });});
+    }
+    chain.then(function(){
+      return fetch(SUPABASE_URL+'/rest/v1/alflesto_music_groups?id=eq.'+encodeURIComponent(group.id),{method:'DELETE',headers:supaHeaders({'Prefer':'return=minimal'})});
+    }).then(function(r){if(!r.ok)return r.text().then(function(t){throw new Error(t||'Gagal menghapus grup');}); return loadMusic();})
+      .catch(function(e){alert('Gagal menghapus grup: '+e.message);})
+      .finally(function(){Array.prototype.forEach.call(btns,function(b){b.disabled=false;});});
   }
 
   function uploadMusicFiles(group,input,btn){

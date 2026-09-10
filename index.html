@@ -5962,8 +5962,6 @@
   var currentUser = null;
 
   function getOrCreateTodaySession(subjectId){
-  tamaPlayPetSfx(tamaCurrentPetType(),'eat');
-
     var subj = state.subjects[subjectId];
     if (!subj.sessions[today]){
       var mod = MODULES[subjectId];
@@ -6812,8 +6810,6 @@
     return '😊 Aku senang! Ayo bermain bersama!';
   }
   function tamaIsSleeping(st){
-  tamaPlayPetSfx(tamaCurrentPetType(),'sleep');
-
     if(!st || st.stage!=='pet' || st.dead)return false;
     var h;
     try{

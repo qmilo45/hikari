@@ -6057,6 +6057,15 @@
   var musicGroupsCache = [];
   var musicExpandedGroups = {};
 
+  function escapeHtml(value){
+    return String(value == null ? '' : value)
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/\"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
   function musicFetchJson(url, label){
     return fetch(url, {headers:supaHeaders()}).then(function(r){
       if(!r.ok){

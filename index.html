@@ -2490,6 +2490,25 @@
 </div>
 
 <script>
+/* Supabase publishable key (sb_publishable_...) bukan JWT: hanya boleh dikirim lewat header `apikey`.
+   Wrapper ini membuang header Authorization: Bearer sb_... agar tidak ditolak "Invalid JWT". */
+(function(){
+  var _fetch = window.fetch;
+  function isSbBearer(v){ return typeof v === 'string' && /^Bearer\s+sb_(publishable|secret)_/.test(v); }
+  window.fetch = function(input, init){
+    try {
+      if (init && init.headers && !(init.headers instanceof Headers) && !Array.isArray(init.headers)) {
+        if (isSbBearer(init.headers.Authorization)) {
+          var h = {}; for (var k in init.headers) if (k !== 'Authorization') h[k] = init.headers[k];
+          init = Object.assign({}, init, { headers: h });
+        }
+      }
+    } catch(e) {}
+    return _fetch.call(this, input, init);
+  };
+})();
+</script>
+<script>
 (function(){
   "use strict";
 
@@ -6264,7 +6283,16 @@
 
       setTimeout(function(){
         wheelSpinning = false;
-        $('wheelSpinBtn').disabled = false;
+        // Subject wins LOCK the wheel immediately: the child must finish
+        // today's assigned mapel before the wheel can be spun again.
+        // Bonus wedges never lock the wheel ("putar lagi").
+        if (winner.kind === 'subject'){
+          state.pendingMapel = { subjectId: winner.id, date: today };
+          saveState(state);
+          $('wheelSpinBtn').disabled = true;
+        } else {
+          $('wheelSpinBtn').disabled = false;
+        }
         showWheelResult(winner);
       }, 4300);
     }).catch(function(e){
@@ -6298,6 +6326,7 @@
     $('wheelResultName').textContent = 'Kamu dapat: ' + mod.name + '!';
     $('wheelResult').classList.add('show');
     actions.innerHTML =
+      '<p style="font-size:12px;color:var(--ink-soft);margin:0 0 10px;line-height:1.4;">Selesaikan latihan ' + mod.name + ' hari ini dulu, ya — roda baru bisa diputar lagi setelahnya.</p>' +
       '<button class="btn btn-primary" id="wheelResultStartBtn">Mulai Belajar</button>';
     $('wheelResultStartBtn').onclick = function(){
       state.pendingMapel = { subjectId: winner.id, date: today };
@@ -6330,8 +6359,12 @@
     if (!state || !state.pendingMapel) return false;
     var pm = state.pendingMapel;
     if (pm.date !== today) { state.pendingMapel = null; saveState(state); return false; }
-    var session = getOrCreateTodaySession(pm.subjectId);
-    if (session.completed){ state.pendingMapel = null; saveState(state); return false; }
+    // Only clear the lock once today's session for the assigned mapel is
+    // actually completed. Do NOT create an empty session here — spinning
+    // alone must not count as "started".
+    var subj = state.subjects[pm.subjectId];
+    var session = (subj && subj.sessions) ? subj.sessions[today] : null;
+    if (session && session.completed){ state.pendingMapel = null; saveState(state); return false; }
     return true;
   }
 
@@ -8476,13 +8509,17 @@ function tamaWorldAct(){
     renderSejarahFunFact();
 
     if (isPendingMapelActive()){
-      $('lockedMapelTitle').textContent = 'Selesaikan dulu: ' + mod.name;
-      $('lockedMapelHint').textContent = 'Roda baru bisa diputar lagi setelah latihan ' + mod.name + ' hari ini selesai.';
+      var pmMod = MODULES[state.pendingMapel.subjectId];
+      var pmName = pmMod ? pmMod.name : 'mapel';
+      $('lockedMapelTitle').textContent = 'Selesaikan dulu: ' + pmName;
+      $('lockedMapelHint').textContent = 'Roda baru bisa diputar lagi setelah latihan ' + pmName + ' hari ini selesai.';
       $('lockedMapelBox').classList.remove('hidden');
       $('wheelSection').classList.add('hidden');
+      $('wheelSpinBtn').disabled = true;
     } else {
       $('lockedMapelBox').classList.add('hidden');
       $('wheelSection').classList.remove('hidden');
+      $('wheelSpinBtn').disabled = false;
       buildWheel([]);
     }
     showView('hub');
@@ -8873,7 +8910,7 @@ function tamaWorldAct(){
      ---------------------------------------------------------------
   ========================================================= */
   var SUPABASE_URL = 'https://vetesehdislhhezlyrtc.supabase.co';
-  var SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZldGVzZWhkaXNsaGhlemx5cnRjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMjg5MTYsImV4cCI6MjEwMjgwNDkxNn0.fmB8pXfBIK78xvvGrhprycHpsvj5-oJvQRs6V1gLnbI';
+  var SUPABASE_ANON_KEY = 'sb_publishable_c63tFVnGnCSWmZ0miIZHwg_w768zLlL';
   var LIB_CACHE_KEY = 'alflesto_library_cache_v1';
   var LIB_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 1 day
 
